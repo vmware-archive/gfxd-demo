@@ -16,6 +16,13 @@
 
 	<task:annotation-driven executor="executor" />
 
+	<bean id="propConfiguration" class="org.apache.commons.configuration.PropertiesConfiguration">
+		<constructor-arg type="java.io.File" value="#{systemProperties['configFile']}"/>
+    	<property name="reloadingStrategy" ref="reloadingStrategy"/>
+	</bean>
+	
+	<bean id="reloadingStrategy" class="org.apache.commons.configuration.reloading.FileChangedReloadingStrategy"/>
+
 	<bean id="hikariConfig" class="com.zaxxer.hikari.HikariConfig">
 		<property name="maximumPoolSize" value="100" />
 		<property name="minimumPoolSize" value="50" />

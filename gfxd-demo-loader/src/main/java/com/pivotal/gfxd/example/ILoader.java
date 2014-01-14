@@ -4,5 +4,5 @@ import java.util.List;
 
 public interface ILoader {
 	
-	public int[] insertBatch(final List<String> lines);
+	public void insertBatch(final List<String> lines);
 }

@@ -7,79 +7,111 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.logging.Logger;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Component;
 
-@Component("asyncLoader")
+@Component("loadRunner")
 public class LoadRunner {
 
-	static Logger logger = Logger.getLogger(LoadRunner.class);
+	static Logger logger = Logger
+			.getLogger(LoadRunner.class.getCanonicalName());
 
 	@Autowired
 	ILoader loader;
 
+	@Autowired
+	PropertiesConfiguration propConfiguration;
+
+	public LoadRunner() {
+
+	}
+	
 	@Async
-	public Future<Integer> asyncInsertBatch(final List<String> lines) {
-		int[] results = loader.insertBatch(lines);
-    return new AsyncResult<Integer>(results.length);
-  }
+	public void asyncInsertBatch(final List<String> lines) {
+		loader.insertBatch(lines);
+		pause();
+	}
+
+	@SuppressWarnings("static-access")
+	private void pause() {
+		try {
+			Thread.currentThread().sleep(
+					propConfiguration.getLong("thread.pause"));
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public void run(final String CSV_FILE) {
+
+		List<String> lines = new LinkedList<>();
+		String timestamp = null;
+
+		try (BufferedReader br = Files.newBufferedReader(Paths.get(CSV_FILE),
+				StandardCharsets.UTF_8)) {
+
+			for (String line = null; (line = br.readLine()) != null;) {
+				int commaPos = line.indexOf(",") + 1;
+				final String currTs = line.substring(commaPos, commaPos + 10);
+
+				// first iteration
+				if (timestamp == null) {
+					timestamp = new String(currTs);
+					lines.add(line);
+
+				} else {
+					// batch same timestamp objects
+					if (timestamp.equals(currTs)) {
+						lines.add(line);
+
+					} else {
+
+						// send batched records and create a new batch
+						this.asyncInsertBatch(lines);
+						lines = new LinkedList<>();
+						lines.add(line);
+						timestamp = currTs;
+					}
+				}
+
+				//
+				// if (lines.size() >= propConfiguration.getInt("batch.size")) {
+				// //this.asyncInsertBatch(lines);
+				// lines = new LinkedList<>();
+				// }
+			}
+			// insert last pending batch
+			this.asyncInsertBatch(lines);
+
+		} catch (IOException ioex) {
+			logger.severe("An error ocurred during batch insertion or the file was not accessible. Message: "
+					+ ioex.getMessage());
+		}
+
+	}
 
 	public static void main(String[] args) {
-		// full path to CSV file
+
 		final String CSV_FILE = args[0];
 
 		try (ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"classpath:context.xml")) {
 
-      List<Future<Integer>> futures = new LinkedList<Future<Integer>>();
-      List<String> lines = new LinkedList<>();
-      LoadRunner runner = (LoadRunner) context.getBean("asyncLoader");
+			LoadRunner runner = (LoadRunner) context.getBean("loadRunner"); // context.getBean("loadRunner");
 
-      long startTime = System.currentTimeMillis();
+			long startTime = System.currentTimeMillis();
+			runner.run(CSV_FILE);
+			long endTime = System.currentTimeMillis();
 
-      try (BufferedReader br = Files.newBufferedReader(
-          Paths.get(CSV_FILE), StandardCharsets.UTF_8)) {
-
-        for (String line = null; (line = br.readLine()) != null; ) {
-          lines.add(line);
-
-          if (lines.size() == Loader.BATCH_SIZE) {
-            futures.add(runner.asyncInsertBatch(lines));
-            logger.info("Batch disptached");
-
-            lines = new LinkedList<>();
-          }
-        }
-        // insert last pending lines
-        futures.add(runner.asyncInsertBatch(lines));
-
-      } catch (IOException ioex) {
-        logger.fatal(
-            "An error ocurred during batch insertion or the file was not accessible. Message"
-                + ioex.getMessage());
-      }
-
-      for (Future<Integer> f : futures) {
-        try {
-          f.get();
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        } catch (ExecutionException e) {
-          e.printStackTrace();
-        }
-      }
-
-      long endTime = System.currentTimeMillis();
-      System.out.println("Total execution time: " + (endTime - startTime)
-          + "ms");
-    }
-  }
+			System.out.println("Total execution time: " + (endTime - startTime)
+					+ "ms");
+		}
+	}
 
 }

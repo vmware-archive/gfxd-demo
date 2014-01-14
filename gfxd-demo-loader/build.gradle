@@ -3,45 +3,48 @@ buildscript {
 		maven { url "http://repo.spring.io/libs-snapshot" }
 		mavenLocal()
 	}
-	dependencies {
-		classpath("org.springframework.boot:spring-boot-gradle-plugin:0.5.0.M7")
-	}
 }
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
-apply plugin: 'spring-boot'
+apply plugin: 'application'
 
 sourceCompatibility = 1.7
 version = '1.0'
-
-//ext {
-//    GFXD_HOME = '/opt/gemfire/gfxd/PRTS-1.0.0-8/Pivotal_GemFireXD_05Beta_b44310/'
-//}
+mainClassName = 'com.pivotal.gfxd.example.LoadRunner'
 
 jar {
 	baseName = 'PlugDataLoader'
 	version = '1.0'
 	manifest {
-        attributes 'Implementation-Title': 'plugDataLoader',
-            'Implementation-Version': version,
-            'Main-Class' : 'com.pivotal.gfxd.example.LoadRunner'
-    }
+		attributes 'Implementation-Title': 'plugDataLoader',
+        'Implementation-Version': version,
+        'Main-Class': mainClassName
+	}
 }
 
 repositories {
-    mavenCentral()
+	mavenCentral()
 	maven { url "http://repo.spring.io/libs-snapshot" }
 }
 
+run {
+	if(project.hasProperty('args')){
+		args project.args.split('\\s+')
+	}
+}
+
 dependencies {
-    compile files(GFXD_HOME + 'lib/sqlfireclient.jar')
-    compile("org.springframework.boot:spring-boot-starter:0.5.0.M7")
-    compile("org.springframework:spring-jdbc:4.0.0.RC1")
-    compile group: 'com.zaxxer', name: 'HikariCP', version: '1.2.1'
-    testCompile group: 'junit', name: 'junit', version: '4.+'
+	compile files(GFXD_HOME + 'lib/sqlfireclient.jar')
+	compile 'org.springframework:spring-jdbc:4.0.0.RELEASE'
+	compile 'org.springframework:spring-context:4.0.0.RELEASE'
+	compile 'org.slf4j:slf4j-api:1.7.5'
+	compile 'org.slf4j:slf4j-simple:1.7.5'
+	compile group: 'commons-configuration', name: 'commons-configuration', version: '1.10'
+	compile group: 'com.zaxxer', name: 'HikariCP', version: '1.2.1'
+	testCompile group: 'junit', name: 'junit', version: '4.+'
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.10'
+  gradleVersion = '1.10'
 }
