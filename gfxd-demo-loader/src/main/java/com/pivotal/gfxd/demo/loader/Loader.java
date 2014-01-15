@@ -1,4 +1,4 @@
-package com.pivotal.gfxd.example;
+package com.pivotal.gfxd.demo.loader;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;

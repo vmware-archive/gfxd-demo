@@ -9,26 +9,33 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd">
 
-	<context:component-scan base-package="com.pivotal.gfxd.example" />
+	<context:component-scan base-package="com.pivotal.gfxd.demo" />
 
-	<task:executor id="executor" pool-size="${thread.poolSize}"
-		queue-capacity="${thread.queueSize}" rejection-policy="CALLER_RUNS" />
+	<bean id="propConfig" lazy-init="false"
+		class="org.apache.commons.configuration.PropertiesConfiguration">
+		<constructor-arg type="java.io.File" value="#{systemProperties['configFile']}" />
+		<property name="reloadingStrategy" ref="reloadingStrategy" />
+	</bean>
+
+	<bean id="executor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" depends-on="propConfig">
+		<property name="corePoolSize" value="#{propConfig.getString('thread.poolMinSize')}" />
+		<property name="maxPoolSize"  value="#{propConfig.getString('thread.poolMaxSize')}" />
+		<property name="queueCapacity" value="#{propConfig.getString('thread.queueSize')}" />
+		<property name="rejectedExecutionHandler" value="#{new java.util.concurrent.ThreadPoolExecutor$CallerRunsPolicy()}" />
+		<property name="WaitForTasksToCompleteOnShutdown" value="true" />
+	</bean>
 
 	<task:annotation-driven executor="executor" />
 
-	<bean id="propConfiguration" class="org.apache.commons.configuration.PropertiesConfiguration">
-		<constructor-arg type="java.io.File" value="#{systemProperties['configFile']}"/>
-    	<property name="reloadingStrategy" ref="reloadingStrategy"/>
-	</bean>
-	
-	<bean id="reloadingStrategy" class="org.apache.commons.configuration.reloading.FileChangedReloadingStrategy"/>
+	<bean id="reloadingStrategy"
+		class="org.apache.commons.configuration.reloading.FileChangedReloadingStrategy" />
 
 	<bean id="hikariConfig" class="com.zaxxer.hikari.HikariConfig">
 		<property name="maximumPoolSize" value="100" />
 		<property name="minimumPoolSize" value="50" />
 		<property name="dataSourceClassName"
 			value="com.vmware.sqlfire.internal.jdbc.ClientDataSource" />
-		<property name="dataSourceProperties" ref="props" />
+		<property name="dataSourceProperties" ref="dbProps" />
 		<property name="poolName" value="springHikariCP" />
 	</bean>
 
@@ -36,7 +43,6 @@
 		<constructor-arg ref="hikariConfig" />
 	</bean>
 
-	<util:properties id="props" location="classpath:db.properties"></util:properties>
-	<context:property-placeholder location="classpath:config.properties" />
+	<util:properties id="dbProps" location="classpath:db.properties"></util:properties>
 
 </beans>
