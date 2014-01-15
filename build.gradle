@@ -1,24 +1,56 @@
-import org.gradle.api.artifacts.*
-
 apply plugin: 'base' // To add "clean" task to the root project.
 
 subprojects {
-    apply from: rootProject.file('common.gradle')
+  apply from: rootProject.file('common.gradle')
 }
 
 task mergedJavadoc(type: Javadoc, description: 'Creates Javadoc from all the projects.') {
-    title = 'All modules'
-    destinationDir = new File(project.buildDir, 'merged-javadoc')
+  title = 'All modules'
+  destinationDir = new File(project.buildDir, 'merged-javadoc')
 
-    // Note: The closures below are executed lazily.
-    source {
-       subprojects*.sourceSets*.main*.allSource
-    }
-    classpath.from {
-        subprojects*.configurations*.compile*.copyRecursive({ !(it instanceof ProjectDependency); })*.resolve()
-    }
+  // Note: The closures below are executed lazily.
+  source {
+    subprojects*.sourceSets*.main*.allSource
+  }
+  classpath.from {
+    subprojects*.configurations*.compile*.copyRecursive({
+      !(it instanceof ProjectDependency);
+    })*.resolve()
+  }
+}
+
+configurations {
+  loaderJar
+}
+
+dependencies {
+  loaderJar project(path: ":gfxd-demo-loader", configuration: "loaderJar")
+}
+
+def gfxdWorkDir = new File("server1")
+def sqlf = GFXD_HOME + "/bin/sqlf"
+def loaderJar = configurations.loaderJar.collect { it }[0]
+
+task stopServer(type: Exec) {
+  ignoreExitValue = true
+  commandLine sqlf, "server", "stop", "-dir=" + gfxdWorkDir
+}
+
+task startServer(dependsOn: stopServer, type: Exec) {
+  doFirst {
+    gfxdWorkDir.deleteDir()
+    gfxdWorkDir.mkdir()
+  }
+
+  ignoreExitValue = true
+  commandLine sqlf, "server", "start",
+      "-dir=" + gfxdWorkDir,
+      "-heap-size=2G",
+      "-server-groups=group1",
+      "-mcast-port=0",
+      "-classpath=" + loaderJar
 }
 
 task wrapper(type: Wrapper, description: 'Creates and deploys the Gradle wrapper to the current directory.') {
-    gradleVersion = '1.10'
+  gradleVersion = '1.10'
 }
