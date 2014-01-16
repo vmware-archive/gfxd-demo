@@ -5,12 +5,14 @@ sourceCompatibility = 1.7
 version = '1.0'
 
 repositories {
-    mavenCentral()
+  mavenCentral()
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.11'
-    compile 'org.springframework:spring-webmvc:4.0.0.RELEASE'
+  testCompile group: 'junit', name: 'junit', version: '4.11'
+  compile 'org.springframework:spring-webmvc:4.0.0.RELEASE'
+  compile project(path: ":gfxd-demo-loader")
 }
 
 jettyRunWar.contextPath = ''
+jettyRun.contextPath = ''
