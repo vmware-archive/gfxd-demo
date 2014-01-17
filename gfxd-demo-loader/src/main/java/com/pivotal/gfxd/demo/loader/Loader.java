@@ -44,5 +44,7 @@ public class Loader extends JdbcDaoSupport implements ILoader {
 				return lines.size();
 			}
 		});
+		
+		System.out.println(Thread.currentThread().getId() + " - " + lines.size() + " rows inserted.");
 	}
 }
