@@ -50,6 +50,13 @@ task startServer(dependsOn: stopServer, type: Exec) {
       "-mcast-port=0",
       "-classpath=" + loaderJar
 }
+task schema(type: Exec) {
+  commandLine sqlf, "run", "-file=${projectDir}/scripts/schema.sql"
+}
+schema.mustRunAfter startServer
+
+task cycle(type: Task, dependsOn: [schema, startServer])
+
 
 task wrapper(type: Wrapper, description: 'Creates and deploys the Gradle wrapper to the current directory.') {
   gradleVersion = '1.10'

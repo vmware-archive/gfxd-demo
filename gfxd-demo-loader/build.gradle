@@ -35,7 +35,6 @@ applicationDefaultJvmArgs = [
 	"-DconfigFile=" + System.getProperty("configFile")
 ]
 
-
 dependencies {
   compile files(GFXD_HOME + 'lib/sqlfireclient.jar')
   compile 'org.springframework:spring-jdbc:4.0.0.RELEASE'
