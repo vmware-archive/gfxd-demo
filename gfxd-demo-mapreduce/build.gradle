@@ -1,0 +1,54 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'application'
+
+sourceCompatibility = 1.7
+version = '1.0'
+mainClassName = 'com.pivotal.gfxd.demo.loader.LoadRunner'
+
+jar {
+  baseName = "gfxd-demo-mapreduce"
+  version = '1.0'
+  manifest {
+    attributes 'Implementation-Title': 'gfxd-demo-mapreduce',
+        'Implementation-Version': version,
+        'Main-Class': mainClassName
+  }
+}
+
+configurations {
+  loaderJar
+}
+
+repositories {
+  mavenCentral()
+  maven { url "http://repo.spring.io/libs-snapshot" }
+}
+
+run {
+  if(project.hasProperty('args')){
+    args project.args.split('\\s+')
+  }
+}
+
+applicationDefaultJvmArgs = [
+	"-DconfigFile=" + System.getProperty("configFile")
+]
+
+ext { GFXD_HOME= '/opt/gemfire/gfxd/PRTS-1.0.0-8/Pivotal_GemFireXD_05Beta_b44310/' }
+
+dependencies {
+  compile files(GFXD_HOME + 'lib/sqlfireclient.jar')
+  compile 'org.springframework:spring-jdbc:4.0.0.RELEASE'
+  compile 'org.springframework:spring-context:4.0.0.RELEASE'
+  compile 'org.springframework.data:spring-data-hadoop:1.0.2.RELEASE
+  compile 'org.slf4j:slf4j-api:1.7.5'
+  compile 'org.slf4j:slf4j-simple:1.7.5'
+  compile group: 'commons-configuration', name: 'commons-configuration', version: '1.10'
+  compile group: 'com.zaxxer', name: 'HikariCP', version: '1.2.1'
+  loaderJar files(jar.archivePath)
+}
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '1.10'
+}

@@ -2,17 +2,19 @@
 -- RAW SENSOR DATA
 ---------------------------------
 DROP TABLE IF EXISTS raw_sensor;
+
 CREATE TABLE raw_sensor (
-id				bigint,
-timestamp 		bigint,
-value 			float(23),
-property 		smallint,
-plug_id			integer,
-household_id	integer,
-house_id		integer,
-CONSTRAINT RAW_SENSOR_PK PRIMARY KEY (ID)
+id				 bigint,
+timestamp 		 bigint,
+value 			 float(23),
+property 		 smallint,
+plug_id			 integer,
+household_id	 integer,
+house_id		 integer
+--CONSTRAINT RAW_SENSOR_PK PRIMARY KEY (ID)
 )
 PARTITION BY COLUMN (house_id);
+CREATE INDEX idx ON raw_sensor (id);
 
 
 ---------------------------------

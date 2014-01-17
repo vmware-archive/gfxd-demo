@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-4.0.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd">
+
+	<context:component-scan base-package="com.pivotal.gfxd.demo" />
+
+	<bean id="propConfig" lazy-init="false"
+		class="org.apache.commons.configuration.PropertiesConfiguration">
+		<constructor-arg type="java.io.File" value="#{systemProperties['configFile']}" />
+		<property name="reloadingStrategy" ref="reloadingStrategy" />
+	</bean>
+
+	<bean id="executor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" depends-on="propConfig">
+		<property name="corePoolSize" value="#{propConfig.getString('thread.poolMinSize')}" />
+		<property name="maxPoolSize"  value="#{propConfig.getString('thread.poolMaxSize')}" />
+		<property name="queueCapacity" value="#{propConfig.getString('thread.queueSize')}" />
+		<property name="rejectedExecutionHandler" value="#{new java.util.concurrent.ThreadPoolExecutor$CallerRunsPolicy()}" />
+		<property name="WaitForTasksToCompleteOnShutdown" value="true" />
+	</bean>
+
+	<!-- <task:annotation-driven executor="executor" /> -->
+
+	<bean id="reloadingStrategy"
+		class="org.apache.commons.configuration.reloading.FileChangedReloadingStrategy" />
+
+	<bean id="hikariConfig" class="com.zaxxer.hikari.HikariConfig">
+		<property name="maximumPoolSize" value="100" />
+		<property name="minimumPoolSize" value="50" />
+		<property name="connectionTimeout" value="10000"></property>
+		<property name="dataSourceClassName"
+			value="com.vmware.sqlfire.internal.jdbc.ClientDataSource" />
+		<property name="dataSourceProperties" ref="dbProps" />
+		<property name="poolName" value="springHikariCP" />
+	</bean>
+
+	<bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource">
+		<constructor-arg ref="hikariConfig" />
+	</bean>
+
+	<util:properties id="dbProps" location="classpath:db.properties"></util:properties>
+
+</beans>
