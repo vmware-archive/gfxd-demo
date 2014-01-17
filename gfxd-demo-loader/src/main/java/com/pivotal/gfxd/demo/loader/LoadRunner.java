@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.logging.Logger;
 
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -25,16 +26,26 @@ public class LoadRunner {
 	ILoader loader;
 
 	@Autowired
+	Executor executor;
+	
+	@Autowired
 	PropertiesConfiguration propConfiguration;
 
 	public LoadRunner() {
 
 	}
 	
-	@Async
 	public void asyncInsertBatch(final List<String> lines) {
-		loader.insertBatch(lines);
-		pause();
+		
+		executor.execute( new Runnable() {
+			
+			@Override
+			public void run() {
+				loader.insertBatch(lines);
+				pause();
+			}
+		});
+		
 	}
 
 	@SuppressWarnings("static-access")
@@ -80,7 +91,7 @@ public class LoadRunner {
 					}
 				}
 
-				//
+				// batch by number of items
 				// if (lines.size() >= propConfiguration.getInt("batch.size")) {
 				// //this.asyncInsertBatch(lines);
 				// lines = new LinkedList<>();
