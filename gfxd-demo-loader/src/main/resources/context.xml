@@ -25,14 +25,13 @@
 		<property name="WaitForTasksToCompleteOnShutdown" value="true" />
 	</bean>
 
-	<task:annotation-driven executor="executor" />
-
 	<bean id="reloadingStrategy"
 		class="org.apache.commons.configuration.reloading.FileChangedReloadingStrategy" />
 
 	<bean id="hikariConfig" class="com.zaxxer.hikari.HikariConfig">
 		<property name="maximumPoolSize" value="100" />
 		<property name="minimumPoolSize" value="50" />
+		<property name="connectionTimeout" value="10000"></property>
 		<property name="dataSourceClassName"
 			value="com.vmware.sqlfire.internal.jdbc.ClientDataSource" />
 		<property name="dataSourceProperties" ref="dbProps" />
