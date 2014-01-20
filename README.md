@@ -57,3 +57,10 @@ Execute directly with: `java -jar gfxd-demo-loader/build/libs/PlugDataLoader-1.0
 
 
 [DEBS 2014 Challenge]:http://www.cse.iitb.ac.in/debs2014/?page_id=42
+
+gfxd-demo-web
+-------------
+
+This is the web frontend for the demo. Run it with:
+
+    gradle gfxd-demo-web:jettyRun -DloadFile=[PATH_TO_CSV_FILE] -DconfigFile=[PATH_TO_CONFIG_FILE]

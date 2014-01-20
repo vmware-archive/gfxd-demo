@@ -36,7 +36,7 @@ applicationDefaultJvmArgs = [
 ]
 
 dependencies {
-  compile files(GFXD_HOME + 'lib/sqlfireclient.jar')
+  compile files(GFXD_HOME + '/lib/sqlfireclient.jar')
   compile 'org.springframework:spring-jdbc:4.0.0.RELEASE'
   compile 'org.springframework:spring-context:4.0.0.RELEASE'
   compile 'org.slf4j:slf4j-api:1.7.5'

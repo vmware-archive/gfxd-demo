@@ -35,8 +35,6 @@ applicationDefaultJvmArgs = [
 	"-DconfigFile=" + System.getProperty("configFile")
 ]
 
-//ext { GFXD_HOME= '/opt/gemfire/gfxd/PRTS-1.0.0-8/Pivotal_GemFireXD_05Beta_b44310/' }
-
 dependencies {
   compile files(GFXD_HOME + 'lib/sqlfireclient.jar')
   compile 'org.springframework:spring-jdbc:4.0.0.RELEASE'

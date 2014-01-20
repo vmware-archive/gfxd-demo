@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns:util="http://www.springframework.org/schema/util"
-	xmlns:task="http://www.springframework.org/schema/task"
-	xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-4.0.xsd
-		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.0.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
-		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd">
 
 	<context:component-scan base-package="com.pivotal.gfxd.demo" />
 
@@ -42,6 +38,14 @@
 		<constructor-arg ref="hikariConfig" />
 	</bean>
 
-	<util:properties id="dbProps" location="classpath:db.properties"></util:properties>
+	<!--
+	    This doesn't work with wildcard classpaths:
+	        <util:properties id="dbProps" location="classpath:db.properties"/>
+	    The wildcard CP is necessary because this jar gets pulled into the web
+	    module and needs to pull this prop file out of the embedded loader jar.
+	-->
+  <bean id="dbProps" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+    <property name="locations" value="classpath*:db.properties" />
+  </bean>
 
 </beans>
