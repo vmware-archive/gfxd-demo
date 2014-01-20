@@ -20,6 +20,12 @@ public class Demo {
 
   @PostConstruct
   private void run() {
-    LOG.info("-------->>>>> YAH!!!!");
+    Thread t = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        runner.run(System.getProperty("loadFile"));
+      }
+    });
+    t.start();
   }
 }

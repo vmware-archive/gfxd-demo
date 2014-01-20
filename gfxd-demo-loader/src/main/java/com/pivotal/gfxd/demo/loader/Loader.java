@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 @Component("loader")
 public class Loader extends JdbcDaoSupport implements ILoader {
 
+  private long rowsInserted;
+
 	@Autowired
 	public Loader(DataSource dataSource) {
 		super.setDataSource(dataSource);
@@ -44,7 +46,13 @@ public class Loader extends JdbcDaoSupport implements ILoader {
 				return lines.size();
 			}
 		});
-		
+
 		System.out.println(Thread.currentThread().getId() + " - " + lines.size() + " rows inserted.");
+
+    rowsInserted += lines.size();
 	}
+
+  public long getRowsInserted() {
+    return rowsInserted;
+  }
 }
