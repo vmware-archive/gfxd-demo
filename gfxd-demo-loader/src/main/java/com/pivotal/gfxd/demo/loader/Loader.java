@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 @Component("loader")
 public class Loader extends JdbcDaoSupport implements ILoader {
 
-  final int TIME_SEGMENTS = 288; // 5 minute unit slots
+  final int MINUTES_PER_INTERVAL = 5; // 5 minute unit slots
 
   private long rowsInserted;
 
@@ -43,13 +43,14 @@ public class Loader extends JdbcDaoSupport implements ILoader {
 				ps.setInt(6, Integer.parseInt(split[5]));
 				ps.setInt(7, Integer.parseInt(split[6]));
 
-                cal.setTimeInMillis(timestamp * 1000L);
-                int weekDay = cal.get(Calendar.DAY_OF_WEEK);
-                int timeSegment = (cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)) % TIME_SEGMENTS;
+        cal.setTimeInMillis(timestamp * 1000L);
+        int weekDay = cal.get(Calendar.DAY_OF_WEEK);
+        int timeSlice = (cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(
+            Calendar.MINUTE)) / MINUTES_PER_INTERVAL;
 
-                ps.setInt(8, weekDay); // weekday
-                ps.setInt(9, timeSegment); // time_slice
-			}
+        ps.setInt(8, weekDay); // weekday
+        ps.setInt(9, timeSlice); // time_slice
+      }
 
 			@Override
 			public int getBatchSize() {
