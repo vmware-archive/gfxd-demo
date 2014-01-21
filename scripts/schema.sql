@@ -3,6 +3,8 @@ create table raw_sensor
   (
     id bigint,
     timestamp bigint,
+    weekday smallint,
+    time_slice smallint,
     value float(23),
     property smallint,
     plug_id integer,
@@ -29,7 +31,7 @@ create table load_averages
     household_id integer,
     plug_id integer,
     weekday smallint,
-    time_segment smallint,
+    time_slice smallint,
     total_load float(23),
     event_count integer
   )
