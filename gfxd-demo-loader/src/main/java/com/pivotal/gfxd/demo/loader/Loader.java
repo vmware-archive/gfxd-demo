@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 @Component("loader")
 public class Loader extends JdbcDaoSupport implements ILoader {
 
-  final static int TIME_SEGMENTS = 288; // 5 minute unit slots
+  final int TIME_SEGMENTS = 288; // 5 minute unit slots
 
   private long rowsInserted;
 
