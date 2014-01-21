@@ -2,6 +2,7 @@ package com.pivotal.gfxd.demo.loader;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Calendar;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -14,6 +15,8 @@ import org.springframework.stereotype.Component;
 @Component("loader")
 public class Loader extends JdbcDaoSupport implements ILoader {
 
+  final static int TIME_SEGMENTS = 288; // 5 minute unit slots
+
   private long rowsInserted;
 
 	@Autowired
@@ -21,9 +24,9 @@ public class Loader extends JdbcDaoSupport implements ILoader {
 		super.setDataSource(dataSource);
 	}
 
-	public void insertBatch(final List<String> lines) {
-		String sql = "insert into raw_sensor (id, timestamp, value, property, plug_id, household_id,house_id) values (?,?,?,?,?,?,?)";
-
+    public void insertBatch(final List<String> lines) {
+		String sql = "insert into raw_sensor (id, timestamp, value, property, plug_id, household_id,house_id, weekday, time_slice) values (?,?,?,?,?,?,?,?,?)";
+        final Calendar cal = Calendar.getInstance();
 		getJdbcTemplate().batchUpdate(sql, new BatchPreparedStatementSetter() {
 
 			@Override
@@ -31,14 +34,21 @@ public class Loader extends JdbcDaoSupport implements ILoader {
 					throws SQLException {
 				final String line = lines.get(i);
 				final String[] split = line.split(",");
-
+                final long timestamp = Long.parseLong(split[1]);
 				ps.setLong(1, Long.parseLong(split[0]));
-				ps.setLong(2, Long.parseLong(split[1]));
+				ps.setLong(2, timestamp);
 				ps.setFloat(3, Float.parseFloat(split[2]));
 				ps.setInt(4, Integer.parseInt(split[3]));
 				ps.setInt(5, Integer.parseInt(split[4]));
 				ps.setInt(6, Integer.parseInt(split[5]));
 				ps.setInt(7, Integer.parseInt(split[6]));
+
+                cal.setTimeInMillis(timestamp * 1000L);
+                int weekDay = cal.get(Calendar.DAY_OF_WEEK);
+                int timeSegment = (cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)) % TIME_SEGMENTS;
+
+                ps.setInt(8, weekDay); // weekday
+                ps.setInt(9, timeSegment); // time_slice
 			}
 
 			@Override
