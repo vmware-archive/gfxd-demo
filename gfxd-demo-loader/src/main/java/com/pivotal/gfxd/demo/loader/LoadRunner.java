@@ -13,8 +13,9 @@ import java.util.logging.Logger;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
 
 @Component("loadRunner")
 public class LoadRunner {
@@ -31,11 +32,17 @@ public class LoadRunner {
 	@Autowired
 	PropertiesConfiguration propConfiguration;
 
-	public LoadRunner() {
+  private int pauseTime = 0;
 
-	}
-	
-	public void asyncInsertBatch(final List<String> lines) {
+	public LoadRunner() {
+  }
+
+  @PostConstruct
+  public void init() {
+    pauseTime = propConfiguration.getInt("thread.pause", 0);
+  }
+
+  public void asyncInsertBatch(final List<String> lines) {
 		
 		executor.execute( new Runnable() {
 			
@@ -50,14 +57,13 @@ public class LoadRunner {
 
 	@SuppressWarnings("static-access")
 	private void pause() {
-		try {
-			Thread.currentThread().sleep(
-					propConfiguration.getLong("thread.pause"));
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+    try {
+      Thread.currentThread().sleep(pauseTime);
+    } catch (InterruptedException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+  }
 
 	public void run(final String CSV_FILE) {
 

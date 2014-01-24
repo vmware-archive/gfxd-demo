@@ -12,7 +12,7 @@
     <link href="css/bootstrap.css" rel="stylesheet" type="text/css"/>
     <link href="css/rickshaw.css" rel="stylesheet" type="text/css"/>
 </head>
-<body ng-app="main">
+<body ng-app="main"–>
 <div class="container-fluid">
     <div class="row-fluid">
         <div class="span8 offset2">
@@ -36,27 +36,51 @@
         <div class="span8 offset2">
             <div class="container-fluid">
                 <div class="row-fluid">
+                    <div class="alert alert-danger" data-bind="visible: showAlertMessage">
+                        <p><span data-bind="text: alertMessage"></span></p>
+                    </div>
+                </div>
+                <div class="row-fluid">
                     <div class="span9">
-                        <div class="row-fluid">
-                            <div class="span8">
-                                <!--<p>Event Rate: <span data-bind="text: eventRate"></span></p>-->
-                                <div id="event_rate_chart"></div>
+                        <div class="container-fluid">
+                            <div class="well">
+                                <div class="row-fluid">
+                                    <div class="span8">
+                                        <div id="event_rate_chart"></div>
+                                    </div>
+                                    <div class="offset1 span3">
+                                        <p>Event Rate: <span data-bind="text: eventRate"></span></p>
+                                        <label class="radio">
+                                            <input type="radio" name="liveRandomRadio" value="live"
+                                                   data-bind="checked: liveRandom"/>
+                                            Live data
+                                        </label>
+                                        <label class="radio">
+                                            <input type="radio" name="liveRandomRadio" value="random"
+                                                   data-bind="checked: liveRandom"/>
+                                            Random data
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="span4">
-                                <p>Event Rate: <span data-bind="text: eventRate"></span></p>
-                                <label class="radio">
-                                    <input type="radio" name="liveRandomRadio" value="live" data-bind="checked: liveRandom" />
-                                    Live data
-                                </label>
-                                <label class="radio">
-                                    <input type="radio" name="liveRandomRadio" value="random" data-bind="checked: liveRandom" />
-                                    Random data
-                                </label>
+                            <div class="row-fluid">
+                                <div class="span12">
+                                    <div id="load_prediction_chart" class="well">
+                                        <p>Foo</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="span3 well">
-                        <button class="btn-small btn-info" data-bind="click: runMapReduce">Run MapReduce</button>
+                        <div>
+                            <button class="btn-small btn-info" data-bind="click: runMapReduce">Run MapReduce</button>
+                        </div>
+                        <br/>
+                        <div>
+                            <label>Time Shift: <span data-bind="text: timeShift"></span></label>
+                            <input type="text" placeholder="0" class="input-small" data-bind="value: datasetStartTime">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -67,14 +91,15 @@
 <br/>
 <!--<script src="js/gfxd-demo.js" type="text/javascript"/>-->
 <script>
-    var tv = 1000;
+    var eventPollRate = 1000;
+    var predictPollRate = 5000;
 
     var eventRateUrl = "/data/random";
 
-    var throughput = new Rickshaw.Graph({
+    var eventGraph = new Rickshaw.Graph({
         element: document.querySelector("#event_rate_chart"),
         width: "400",
-        height: "200",
+        height: "100",
         renderer: "line",
         series: new Rickshaw.Series.FixedDuration([
             {
@@ -82,45 +107,90 @@
                 color: 'gold'
             }
         ], undefined, {
-            timeInterval: tv,
+            timeInterval: eventPollRate,
             maxDataPoints: 100,
             timeBase: new Date().getTime() / 1000
         })
     });
-    var axes = new Rickshaw.Graph.Axis.Time({
-        graph: throughput
+    var eventXAxis = new Rickshaw.Graph.Axis.Time({
+        graph: eventGraph
     });
-    axes.render();
+    eventXAxis.render();
 
-    var yAxis = new Rickshaw.Graph.Axis.Y({
-        graph: throughput,
+    var time = new Rickshaw.Fixtures.Time();
+    var timeUnit = time.unit('hour');
+
+    var eventYAxis = new Rickshaw.Graph.Axis.Y({
+        graph: eventGraph,
+        timeUnit: timeUnit,
+        timeFixture: new Rickshaw.Fixtures.Time.Local()
     });
-    yAxis.render();
-
-    throughput.render();
+    eventYAxis.render();
+    eventGraph.render();
 
     setInterval(function () {
-        pollServer(throughput);
-    }, tv);
+        pollEvents(eventGraph);
+    }, eventPollRate);
 
-    function pollServer(chart) {
-        // Change this to "/data/events-loaded for real data
+    function pollEvents(chart) {
         d3.json(eventRateUrl, function (error, json) {
+            if (error) {
+                chartModel.alertMessage("Error retrieving event rate");
+                chartModel.showAlertMessage(true);
+                console.log(error);
+            } else {
+                chartModel.showAlertMessage(false);
+                var data = {one: json.value};
+                chart.series.addData(data, json.timestamp);
+                chart.render();
+                eventYAxis.render();
+                chartModel.eventRate(Math.round(json.value));
+            }
+        })
+    }
+
+    var predictionGraph = new Rickshaw.Graph({
+        element: document.querySelector("#load_prediction_chart"),
+        width: "500",
+        height: "200",
+        renderer: "line",
+        series: new Rickshaw.Series.FixedDuration([
+            {
+                name: 'two',
+                color: 'blue'
+            }
+        ], undefined, {
+            timeInterval: predictPollRate,
+            maxDataPoints: 100,
+            timeBase: new Date().getTime() / 1000
+        })
+    });
+    predictionGraph.render();
+
+    setInterval(function () {
+        pollPrediction(predictionGraph);
+    }, predictPollRate);
+
+    function pollPrediction(chart) {
+        d3.json("/data/predicted-load?delta=" + chartModel.timeShift(), function (error, json) {
             if (error) {
                 console.log(error);
             } else {
-                var data = {one: json.value};
-                chart.series.addData(data);
+//                var data = {two: json.value};
+                var data = {two: 100};
+                chart.series.addData(data, json.timestamp);
                 chart.render();
-                yAxis.render();
-                chartModel.eventRate(Math.round(json.value));
+//                eventYAxis.render();
             }
         })
     }
 
     function ChartViewModel() {
         this.eventRate = ko.observable(0);
-        this.liveRandom = ko.observable("random");
+        this.datasetStartTime = ko.observable(1390582533);
+        this.liveRandom = ko.observable("");
+        this.alertMessage = ko.observable("");
+        this.showAlertMessage = ko.observable(false);
 
         this.liveRandom.subscribe(function(arg) {
             if (arg == "live") {
@@ -129,6 +199,11 @@
                 eventRateUrl = "/data/random";
             }
         });
+        this.liveRandom("live");
+
+        this.timeShift = ko.computed(function () {
+            return Math.round(new Date().getTime() / 1000) - this.datasetStartTime();
+        }, this);
 
         this.runMapReduce = function() {
             console.log("--->>> Running MapReduce");

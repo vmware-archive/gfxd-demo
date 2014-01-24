@@ -1,13 +1,16 @@
 package com.pivotal.gfxd.demo.controller;
 
+import com.pivotal.gfxd.demo.TimeSlice;
 import com.pivotal.gfxd.demo.entity.TimestampValue;
 import com.pivotal.gfxd.demo.loader.ILoader;
+import com.pivotal.gfxd.demo.prediction.PredictionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpSession;
@@ -26,6 +29,9 @@ public class DemoController {
   @Autowired
   ILoader loader;
 
+  @Autowired
+  PredictionService predictionSvc;
+
   @RequestMapping(value = "/events-loaded", produces = "application/json",
       method = RequestMethod.GET)
   @ResponseBody
@@ -42,10 +48,6 @@ public class DemoController {
 
     session.setAttribute("last-call", new TimestampValue(now, rows));
 
-    System.out.println(
-        "now=" + now + " last=" + lastCall.getTimestamp() + " lastValue=" + lastCall.getValue() + " rows " + rows);
-    System.out.println(tv);
-
     return new ResponseEntity(tv, HttpStatus.OK);
   }
 
@@ -57,7 +59,23 @@ public class DemoController {
 
     TimestampValue tv = new TimestampValue(System.currentTimeMillis() / 1000, rate);
 
-    System.out.println(tv);
+    return new ResponseEntity(tv, HttpStatus.OK);
+  }
+
+  @RequestMapping(value = "/predicted-load", produces = "application/json",
+      method = RequestMethod.GET)
+  @ResponseBody
+  public ResponseEntity<TimestampValue> getPrediction(HttpSession session,
+      @RequestParam(value="delta", required=false) Integer delta) {
+    long now = System.currentTimeMillis() / 1000;
+    if (delta != null) {
+      now -= delta;
+    }
+
+    float predictedLoad = predictionSvc.predictedLoad(now ,
+        TimeSlice.Interval.FIVE_MINUTE);
+
+    TimestampValue tv = new TimestampValue(now, predictedLoad);
 
     return new ResponseEntity(tv, HttpStatus.OK);
   }

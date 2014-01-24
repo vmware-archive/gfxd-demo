@@ -20,16 +20,17 @@ task mergedJavadoc(type: Javadoc, description: 'Creates Javadoc from all the pro
 }
 
 configurations {
-  loaderJar
+  appJars
 }
 
 dependencies {
-  loaderJar project(path: ":gfxd-demo-loader", configuration: "loaderJar")
+  appJars project(path: ":gfxd-demo-loader", configuration: "loaderJar")
+  appJars project(path: ":gfxd-demo-aeq-listener", configuration: "aeqListenerJar")
 }
 
 def gfxdWorkDir = new File("server1")
 def sqlf = GFXD_HOME + "/bin/sqlf"
-def loaderJar = configurations.loaderJar.collect { it }[0]
+def appJars = configurations.appJars.collect { it }
 
 task stopServer(type: Exec) {
   ignoreExitValue = true
@@ -48,7 +49,7 @@ task startServer(dependsOn: stopServer, type: Exec) {
       "-heap-size=2G",
       "-server-groups=group1",
       "-mcast-port=0",
-      "-classpath=" + loaderJar
+      "-classpath=" + appJars.join(":")
 }
 task schema(type: Exec) {
   commandLine sqlf, "run", "-file=${projectDir}/scripts/schema.sql"
