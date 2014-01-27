@@ -1,4 +1,4 @@
-package com.pivotal.gfxd.demo.prediction;
+package com.pivotal.gfxd.demo.services;
 
 import com.pivotal.gfxd.demo.TimeSlice;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,8 +8,6 @@ import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -32,8 +30,8 @@ public class PredictionService extends JdbcDaoSupport {
   }
 
   /**
-   * Return the predicted load for a given timestamp and time segment. The
-   * segment determines the time window into which the timestamp will fall.
+   * Return the predicted load for a given timestamp and time slice. The
+   * slice determines the time window into which the timestamp will fall.
    *
    * @param timestamp timestamp in seconds
    * @param interval
@@ -66,6 +64,17 @@ public class PredictionService extends JdbcDaoSupport {
     }
 
     return (median + currentLoad) / 2;
+  }
+
+  public float currentLoad(long timestamp, TimeSlice.Interval interval) {
+    TimeSlice slice = new TimeSlice(timestamp, interval);
+    try {
+      return getAverageLoad(OPERATIONAL_AVG_OVERALL_QUERY,
+          slice.getWeekday(), slice.getIntervalStart(), slice.getIntervalEnd(), 0);
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+    return 0;
   }
 
   private float median(float[] values) {

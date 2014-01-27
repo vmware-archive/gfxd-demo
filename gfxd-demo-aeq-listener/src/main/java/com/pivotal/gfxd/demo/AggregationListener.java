@@ -20,11 +20,11 @@ public class AggregationListener implements AsyncEventListener {
 
   private static final String CONN_URL = "jdbc:sqlfire:";
 
-  private static final String SELECT_SQL = "select * from load_averages where house_id = ? and household_id = ? and plug_id = ? and weekday = ? and time_slice = ?";
+  private static final String SELECT_SQL = "select * from load_averages where and plug_id = ? and weekday = ? and time_slice = ?";
 
   private static final String INSERT_SQL = "insert into load_averages values (?, ?, ?, ?, ?, ?, ?)";
 
-  private static final String UPDATE_SQL = "update load_averages set total_load = ?, event_count = ? where house_id = ? and household_id = ? and plug_id = ? and weekday = ? and time_slice = ?";
+  private static final String UPDATE_SQL = "update load_averages set total_load = ?, event_count = ? where plug_id = ? and weekday = ? and time_slice = ?";
 
   //load driver
   static {
@@ -44,6 +44,16 @@ public class AggregationListener implements AsyncEventListener {
       return getConnection();
     }
   };
+
+  private static Connection getConnection() {
+    Connection conn;
+    try {
+      conn = DriverManager.getConnection(CONN_URL);
+    } catch (SQLException e) {
+      throw new IllegalStateException("Unable to create connection", e);
+    }
+    return conn;
+  }
 
   private static ThreadLocal<Statement> stmt = new ThreadLocal<Statement> () {
     protected Statement initialValue() {
@@ -93,16 +103,6 @@ public class AggregationListener implements AsyncEventListener {
     }
   };
 
-  private static Connection getConnection() {
-    Connection conn;
-    try {
-      conn = DriverManager.getConnection(CONN_URL);
-    } catch (SQLException e) {
-      throw new IllegalStateException("Unable to create connection", e);
-    }
-    return conn;
-  }
-
   @Override
   public boolean processEvents(List<Event> events) {
     for (Event e : events) {
@@ -113,22 +113,18 @@ public class AggregationListener implements AsyncEventListener {
             continue;
           }
           PreparedStatement s = selectStmt.get();
-          s.setInt(1, eventRS.getInt("house_id"));
-          s.setInt(2, eventRS.getInt("household_id"));
-          s.setInt(3, eventRS.getInt("plug_id"));
-          s.setInt(4, eventRS.getInt("weekday"));
-          s.setInt(5, eventRS.getInt("time_slice"));
+          s.setInt(1, eventRS.getInt("plug_id"));
+          s.setInt(2, eventRS.getInt("weekday"));
+          s.setInt(3, eventRS.getInt("time_slice"));
           ResultSet queryRS = s.executeQuery();
 
           if (queryRS.next()) {
             PreparedStatement update = updateStmt.get();
             update.setFloat(1, queryRS.getFloat("total_load") + eventRS.getFloat("value"));
             update.setInt(2, queryRS.getInt("event_count") + 1);
-            update.setInt(3, queryRS.getInt("house_id"));
-            update.setInt(4, queryRS.getInt("household_id"));
-            update.setInt(5, queryRS.getInt("plug_id"));
-            update.setInt(6, queryRS.getInt("weekday"));
-            update.setInt(7, queryRS.getInt("time_slice"));
+            update.setInt(3, queryRS.getInt("plug_id"));
+            update.setInt(4, queryRS.getInt("weekday"));
+            update.setInt(5, queryRS.getInt("time_slice"));
             update.executeUpdate();
           } else {
             PreparedStatement insert = insertStmt.get();

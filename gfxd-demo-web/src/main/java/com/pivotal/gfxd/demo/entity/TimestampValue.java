@@ -1,5 +1,8 @@
 package com.pivotal.gfxd.demo.entity;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Represents a timestamp, value tuple. Typically serialized into JSON.
  *
@@ -8,24 +11,32 @@ package com.pivotal.gfxd.demo.entity;
 public class TimestampValue {
 
   private long timestamp;
+  private Map<String, Float> values = new HashMap<>();
 
-  private float value;
 
-  public TimestampValue(long timestamp, float value) {
+  public TimestampValue(String name, long timestamp, float value) {
     this.timestamp = timestamp;
-    this.value = value;
+    add(name, value);
+  }
+
+  public TimestampValue(long timestamp) {
+    this.timestamp = timestamp;
+  }
+
+  public TimestampValue add(String name, float value) {
+    values.put(name, value);
+    return this;
   }
 
   public long getTimestamp() {
     return timestamp;
   }
 
-  public float getValue() {
-    return value;
+  public Float getValue(String name) {
+    return values.get(name);
   }
 
-  @Override
-  public String toString() {
-    return "{ timestamp: " + timestamp + ", value: " + value + "}";
+  public Map<String, Float> getValues() {
+    return values;
   }
 }

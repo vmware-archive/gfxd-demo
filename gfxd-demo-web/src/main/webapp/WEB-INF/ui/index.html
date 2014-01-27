@@ -143,10 +143,11 @@
                 console.log(error);
             } else {
                 chartModel.showAlertMessage(false);
-                var data = {one: json.value};
+                var value = json.values['event'];
+                var data = {one: value};
                 chart.series.addData(data, json.timestamp);
                 chart.render();
-                chartModel.eventRate(Math.round(json.value));
+                chartModel.eventRate(Math.round(value));
             }
         })
     }
@@ -160,11 +161,15 @@
             {
                 name: 'predict',
                 color: 'blue'
+            },
+            {
+                name: 'current',
+                color: 'red'
             }
         ], undefined, {
             timeInterval: predictPollRate,
-            maxDataPoints: 100,
-            timeBase: datasetStartTime
+            maxDataPoints: 300,
+            timeBase: new Date().getTime() / 1000
         })
     });
 
@@ -197,11 +202,23 @@
             if (error) {
                 console.log(error);
             } else {
-                var data = {predict: json.value + Math.random() * json.value};
+                var data = {
+                    predict: json.values['predict'],
+                    current: json.values['current']
+                }
                 chart.series.addData(data, json.timestamp);
                 chart.render();
             }
         })
+//        d3.json("/data/current-load?delta=" + chartModel.timeShift(), function (error, json) {
+//            if (error) {
+//                console.log(error);
+//            } else {
+//                var data = {current: json.value};
+//                chart.series.addData(data, json.timestamp);
+//                chart.render();
+//            }
+//        })
     }
 
     function ChartViewModel() {
