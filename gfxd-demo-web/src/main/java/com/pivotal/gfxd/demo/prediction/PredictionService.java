@@ -2,6 +2,8 @@ package com.pivotal.gfxd.demo.prediction;
 
 import com.pivotal.gfxd.demo.TimeSlice;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Component;
 
@@ -88,26 +90,45 @@ public class PredictionService extends JdbcDaoSupport {
         weekDay, intervalStart, intervalEnd, 0);
   }
 
-  private float getAverageLoad(String sql, int weekDay, int intervalStart,
-      int intervalEnd, int rowWithCount) throws SQLException {
-    Connection conn = getConnection();
-    PreparedStatement ps = conn.prepareStatement(sql);
-
-    ps.setInt(1, weekDay);
-    ps.setInt(2, intervalStart);
-    ps.setInt(3, intervalEnd);
-    ResultSet rs = ps.executeQuery();
-    float totalLoad = 0;
+  private static class MyRCH implements RowCallbackHandler {
+    float load = 0;
     int count = 0;
-    while (rs.next()) {
-      totalLoad += rs.getFloat(1);
-      if (rowWithCount > 0) {
-        count += rs.getInt(rowWithCount);
-      } else {
-        count += 1;
+    int rowWithCount;
+
+    public MyRCH(int rowWithCount) {
+      this.rowWithCount = rowWithCount;
+    }
+
+    @Override
+    public void processRow(ResultSet rs) throws SQLException {
+      while (rs.next()) {
+        load += rs.getFloat(1);
+        if (rowWithCount > 0) {
+          count += rs.getInt(rowWithCount);
+        } else {
+          count += 1;
+        }
       }
     }
 
-    return totalLoad / count;
+    public float getLoad() {
+      return load;
+    }
+
+    public int getCount() {
+      return count;
+    }
+  }
+
+  private float getAverageLoad(String sql, int weekDay, int intervalStart,
+      int intervalEnd, int rowWithCount) throws SQLException {
+
+    JdbcTemplate template = getJdbcTemplate();
+    Object[] params = {weekDay, intervalStart, intervalEnd};
+
+    MyRCH rch = new MyRCH(rowWithCount);
+    template.query(sql, params, rch);
+
+    return rch.getLoad() / rch.getCount();
   }
 }

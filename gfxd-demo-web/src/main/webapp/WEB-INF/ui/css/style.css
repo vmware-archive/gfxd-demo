@@ -1,9 +1,1 @@
-/*
-    Demo specific styles
-*/
 
-.bordered > div {
-    border: 1px solid #eee;
-    border-radius: 3px;
-    padding: 8px;
-}

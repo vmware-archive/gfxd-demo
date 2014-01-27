@@ -19,29 +19,29 @@ public class Loader extends JdbcDaoSupport implements ILoader {
 
   private long rowsInserted;
 
-	@Autowired
-	public Loader(DataSource dataSource) {
-		super.setDataSource(dataSource);
-	}
+  @Autowired
+  public Loader(DataSource dataSource) {
+    super.setDataSource(dataSource);
+  }
 
-    public void insertBatch(final List<String> lines) {
-		String sql = "insert into raw_sensor (id, timestamp, value, property, plug_id, household_id,house_id, weekday, time_slice) values (?,?,?,?,?,?,?,?,?)";
-        final Calendar cal = Calendar.getInstance();
-		getJdbcTemplate().batchUpdate(sql, new BatchPreparedStatementSetter() {
+  public long insertBatch(final List<String> lines) {
+    String sql = "insert into raw_sensor (id, timestamp, value, property, plug_id, household_id,house_id, weekday, time_slice) values (?,?,?,?,?,?,?,?,?)";
+    final Calendar cal = Calendar.getInstance();
+    getJdbcTemplate().batchUpdate(sql, new BatchPreparedStatementSetter() {
 
-			@Override
-			public void setValues(PreparedStatement ps, int i)
-					throws SQLException {
-				final String line = lines.get(i);
-				final String[] split = line.split(",");
-                final long timestamp = Long.parseLong(split[1]);
-				ps.setLong(1, Long.parseLong(split[0]));
-				ps.setLong(2, timestamp);
-				ps.setFloat(3, Float.parseFloat(split[2]));
-				ps.setInt(4, Integer.parseInt(split[3]));
-				ps.setInt(5, Integer.parseInt(split[4]));
-				ps.setInt(6, Integer.parseInt(split[5]));
-				ps.setInt(7, Integer.parseInt(split[6]));
+      @Override
+      public void setValues(PreparedStatement ps, int i)
+          throws SQLException {
+        final String line = lines.get(i);
+        final String[] split = line.split(",");
+        final long timestamp = Long.parseLong(split[1]);
+        ps.setLong(1, Long.parseLong(split[0]));
+        ps.setLong(2, timestamp);
+        ps.setFloat(3, Float.parseFloat(split[2]));
+        ps.setInt(4, Integer.parseInt(split[3]));
+        ps.setInt(5, Integer.parseInt(split[4]));
+        ps.setInt(6, Integer.parseInt(split[5]));
+        ps.setInt(7, Integer.parseInt(split[6]));
 
         cal.setTimeInMillis(timestamp * 1000L);
         int weekDay = cal.get(Calendar.DAY_OF_WEEK);
@@ -52,16 +52,21 @@ public class Loader extends JdbcDaoSupport implements ILoader {
         ps.setInt(9, timeSlice); // time_slice
       }
 
-			@Override
-			public int getBatchSize() {
-				return lines.size();
-			}
-		});
+      @Override
+      public int getBatchSize() {
+        return lines.size();
+      }
+    });
 
-		System.out.println(Thread.currentThread().getId() + " - " + lines.size() + " rows inserted.");
+    System.out.println(
+        Thread.currentThread().getId() + " - " + lines.size() + " rows inserted.");
 
     rowsInserted += lines.size();
-	}
+
+    // Return the timestamp of the first row of this batch
+    String[] split = lines.get(0).split(",");
+    return Long.parseLong(split[1]);
+  }
 
   public long getRowsInserted() {
     return rowsInserted;

@@ -37,7 +37,7 @@ The input is via CSV File available at: https://drive.google.com/file/d/0B0TBL8J
 
 ### Configuration
 
-* `config.properties` - Used for threadPool and queue size. It can also defines the batch size for batch insertion.
+* `config.properties` - Used for threadPool and queue size. It can also define the batch size for batch insertion.
 * `db.properties` - Database connectivity parameters.
 * `context.xml` - Spring context configuration.
         
@@ -60,6 +60,12 @@ Execute directly with: `java -jar gfxd-demo-loader/build/libs/PlugDataLoader-1.0
 
 gfxd-demo-web
 -------------
+
+In order to set up and 'prime' the database, run the following:
+
+    gradle cycle
+
+This command will restart GemfireXD, create the necessary schemas and load some pre-computed values into the `load_averages` table.
 
 This is the web frontend for the demo. Run it with:
 

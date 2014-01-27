@@ -12,10 +12,10 @@
     <link href="css/bootstrap.css" rel="stylesheet" type="text/css"/>
     <link href="css/rickshaw.css" rel="stylesheet" type="text/css"/>
 </head>
-<body ng-app="main"–>
+<body ng-app="main">
 <div class="container-fluid">
     <div class="row-fluid">
-        <div class="span8 offset2">
+        <div class="span10 offset1">
             <h1 class="well">
                 <!--
                 <a href="default.htm">
@@ -33,7 +33,7 @@
 
 <div class="container-fluid">
     <div class="row-fluid">
-        <div class="span8 offset2">
+        <div class="span10 offset1">
             <div class="container-fluid">
                 <div class="row-fluid">
                     <div class="alert alert-danger" data-bind="visible: showAlertMessage">
@@ -63,10 +63,15 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="row-fluid">
-                                <div class="span12">
-                                    <div id="load_prediction_chart" class="well">
-                                        <p>Foo</p>
+                            <div class="well">
+                                <div class="row-fluid">
+                                    <div class="span10" id="chart_container">
+                                        <div id="load_prediction_chart"></div>
+                                    </div>
+                                    <div class="span2">
+                                        <div id="legend_container">
+                                            <div id="legend"></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -77,6 +82,7 @@
                             <button class="btn-small btn-info" data-bind="click: runMapReduce">Run MapReduce</button>
                         </div>
                         <br/>
+
                         <div>
                             <label>Time Shift: <span data-bind="text: timeShift"></span></label>
                             <input type="text" placeholder="0" class="input-small" data-bind="value: datasetStartTime">
@@ -91,10 +97,12 @@
 <br/>
 <!--<script src="js/gfxd-demo.js" type="text/javascript"/>-->
 <script>
-    var eventPollRate = 1000;
-    var predictPollRate = 5000;
+    var eventPollRate = 2000;
+    var predictPollRate = 2000;
 
     var eventRateUrl = "/data/random";
+
+    var datasetStartTime = 1390601953;
 
     var eventGraph = new Rickshaw.Graph({
         element: document.querySelector("#event_rate_chart"),
@@ -112,20 +120,15 @@
             timeBase: new Date().getTime() / 1000
         })
     });
+
     var eventXAxis = new Rickshaw.Graph.Axis.Time({
         graph: eventGraph
     });
     eventXAxis.render();
 
-    var time = new Rickshaw.Fixtures.Time();
-    var timeUnit = time.unit('hour');
-
     var eventYAxis = new Rickshaw.Graph.Axis.Y({
-        graph: eventGraph,
-        timeUnit: timeUnit,
-        timeFixture: new Rickshaw.Fixtures.Time.Local()
+        graph: eventGraph
     });
-    eventYAxis.render();
     eventGraph.render();
 
     setInterval(function () {
@@ -135,7 +138,7 @@
     function pollEvents(chart) {
         d3.json(eventRateUrl, function (error, json) {
             if (error) {
-                chartModel.alertMessage("Error retrieving event rate");
+                chartModel.alertMessage("Error retrieving data");
                 chartModel.showAlertMessage(true);
                 console.log(error);
             } else {
@@ -143,7 +146,6 @@
                 var data = {one: json.value};
                 chart.series.addData(data, json.timestamp);
                 chart.render();
-                eventYAxis.render();
                 chartModel.eventRate(Math.round(json.value));
             }
         })
@@ -156,15 +158,34 @@
         renderer: "line",
         series: new Rickshaw.Series.FixedDuration([
             {
-                name: 'two',
+                name: 'predict',
                 color: 'blue'
             }
         ], undefined, {
             timeInterval: predictPollRate,
             maxDataPoints: 100,
-            timeBase: new Date().getTime() / 1000
+            timeBase: datasetStartTime
         })
     });
+
+    var predictionXAxis = new Rickshaw.Graph.Axis.Time({
+        graph: predictionGraph
+    });
+    var predictionYAxis = new Rickshaw.Graph.Axis.Y({
+        graph: predictionGraph
+    });
+
+    var hoverDetail = new Rickshaw.Graph.HoverDetail({
+        graph: predictionGraph
+    });
+
+    var legend = new Rickshaw.Graph.Legend({
+        graph: predictionGraph,
+        element: document.getElementById('legend')
+
+    });
+
+    predictionXAxis.render();
     predictionGraph.render();
 
     setInterval(function () {
@@ -176,23 +197,21 @@
             if (error) {
                 console.log(error);
             } else {
-//                var data = {two: json.value};
-                var data = {two: 100};
+                var data = {predict: json.value + Math.random() * json.value};
                 chart.series.addData(data, json.timestamp);
                 chart.render();
-//                eventYAxis.render();
             }
         })
     }
 
     function ChartViewModel() {
         this.eventRate = ko.observable(0);
-        this.datasetStartTime = ko.observable(1390582533);
+        this.datasetStartTime = ko.observable(datasetStartTime);
         this.liveRandom = ko.observable("");
         this.alertMessage = ko.observable("");
         this.showAlertMessage = ko.observable(false);
 
-        this.liveRandom.subscribe(function(arg) {
+        this.liveRandom.subscribe(function (arg) {
             if (arg == "live") {
                 eventRateUrl = "/data/events-loaded";
             } else {
@@ -205,7 +224,7 @@
             return Math.round(new Date().getTime() / 1000) - this.datasetStartTime();
         }, this);
 
-        this.runMapReduce = function() {
+        this.runMapReduce = function () {
             console.log("--->>> Running MapReduce");
 //            d3.json("/data/run-mapreduce", function (error, json) {
 //                if (error) {

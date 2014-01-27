@@ -13,16 +13,13 @@ create table raw_sensor
 --    CONSTRAINT RAW_SENSOR_PK PRIMARY KEY (ID)
   )
   partition by column (house_id)
-  eviction by lrucount 100000
+  eviction by lrucount 1000000
   evictaction destroy
 --  persistent asynchronous
 ;
 
--- ALTER TABLE FLIGHTAVAILABILITY
---    ADD CONSTRAINT FLIGHTAVAIL_PK Primary Key (
---       FLIGHT_ID,
---       SEGMENT_NUMBER,
---       FLIGHT_DATE);
+drop index if exists raw_sensor_idx;
+create index raw_sensor_idx on raw_sensor (plug_id, weekday, time_slice);
 
 drop table if exists load_averages;
 create table load_averages
@@ -39,7 +36,7 @@ create table load_averages
 ;
 
 drop index if exists load_averages_idx;
-create index load_averages_idx on load_averages (house_id, household_id, plug_id, weekday, time_slice);
+create index load_averages_idx on load_averages (plug_id, weekday, time_slice);
 
 drop asynceventlistener if exists AggListener;
 create asynceventlistener AggListener

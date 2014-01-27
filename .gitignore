@@ -4,3 +4,5 @@ gradle.properties
 build
 /.classpath
 /.project
+*.pyc
+*.swp

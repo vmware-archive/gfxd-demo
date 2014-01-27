@@ -34,12 +34,18 @@ public class LoadRunner {
 
   private int pauseTime = 0;
 
+  private long boostTime = 0;
+
+  // The timestamp of the very first row that is read. This value is in seconds.
+  private long startTime = 0;
+
 	public LoadRunner() {
   }
 
   @PostConstruct
   public void init() {
     pauseTime = propConfiguration.getInt("thread.pause", 0);
+    boostTime = propConfiguration.getInt("demo.boost", 0);
   }
 
   public void asyncInsertBatch(final List<String> lines) {
@@ -48,8 +54,10 @@ public class LoadRunner {
 			
 			@Override
 			public void run() {
-				loader.insertBatch(lines);
-				pause();
+				long ts = loader.insertBatch(lines);
+        if (startTime + boostTime < ts) {
+          pause();
+        }
 			}
 		});
 		
@@ -81,6 +89,7 @@ public class LoadRunner {
 				if (timestamp == null) {
 					timestamp = new String(currTs);
 					lines.add(line);
+          startTime = Long.parseLong(timestamp);
 
 				} else {
 					// batch same timestamp objects

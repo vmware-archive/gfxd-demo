@@ -72,8 +72,11 @@ public class DemoController {
       now -= delta;
     }
 
+    long start = System.currentTimeMillis();
     float predictedLoad = predictionSvc.predictedLoad(now ,
         TimeSlice.Interval.FIVE_MINUTE);
+
+    System.out.println("Prediction took " + (System.currentTimeMillis() - start) + "ms + " + predictedLoad + " for time " + now);
 
     TimestampValue tv = new TimestampValue(now, predictedLoad);
 
