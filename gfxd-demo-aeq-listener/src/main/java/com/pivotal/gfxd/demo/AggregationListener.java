@@ -20,7 +20,7 @@ public class AggregationListener implements AsyncEventListener {
 
   private static final String CONN_URL = "jdbc:sqlfire:";
 
-  private static final String SELECT_SQL = "select * from load_averages where and plug_id = ? and weekday = ? and time_slice = ?";
+  private static final String SELECT_SQL = "select * from load_averages where plug_id = ? and weekday = ? and time_slice = ?";
 
   private static final String INSERT_SQL = "insert into load_averages values (?, ?, ?, ?, ?, ?, ?)";
 

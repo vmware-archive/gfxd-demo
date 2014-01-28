@@ -57,7 +57,7 @@ public class DemoController {
       produces = "application/json",
       method = RequestMethod.GET)
   @ResponseBody
-  public ResponseEntity<TimestampValue> getRandom(HttpSession session) {
+  public ResponseEntity<TimestampValue> getRandom() {
     float rate = (float) ((Math.random() - 0.5) * 1000 + 5000);
 
     TimestampValue tv = new TimestampValue("event", System.currentTimeMillis() / 1000, rate);
@@ -69,7 +69,7 @@ public class DemoController {
       produces = "application/json",
       method = RequestMethod.GET)
   @ResponseBody
-  public ResponseEntity<TimestampValue> getPrediction(HttpSession session,
+  public ResponseEntity<TimestampValue> getPrediction(
       @RequestParam(value="delta", required=false) Integer delta) {
     long now = System.currentTimeMillis() / 1000;
     long then = now;
@@ -97,4 +97,13 @@ public class DemoController {
     return new ResponseEntity(tv, HttpStatus.OK);
   }
 
+  // Yes, yes - this isn't very RESTful :P
+  @RequestMapping(value = "/disturbance",
+      method = RequestMethod.GET)
+  @ResponseBody
+  public ResponseEntity setDisturbance(
+      @RequestParam(value="value") Integer disturbance) {
+    loader.setDisturbance(disturbance / 100F);
+    return new ResponseEntity("", HttpStatus.OK);
+  }
 }

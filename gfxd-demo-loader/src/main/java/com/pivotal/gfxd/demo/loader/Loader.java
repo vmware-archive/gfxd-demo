@@ -19,6 +19,8 @@ public class Loader extends JdbcDaoSupport implements ILoader {
 
   private long rowsInserted;
 
+  private float disturbance;
+
   @Autowired
   public Loader(DataSource dataSource) {
     super.setDataSource(dataSource);
@@ -37,7 +39,8 @@ public class Loader extends JdbcDaoSupport implements ILoader {
         final long timestamp = Long.parseLong(split[1]);
         ps.setLong(1, Long.parseLong(split[0]));
         ps.setLong(2, timestamp);
-        ps.setFloat(3, Float.parseFloat(split[2]));
+        float value = Float.parseFloat(split[2]);
+        ps.setFloat(3, value + value * disturbance);
         ps.setInt(4, Integer.parseInt(split[3]));
         ps.setInt(5, Integer.parseInt(split[4]));
         ps.setInt(6, Integer.parseInt(split[5]));
@@ -70,5 +73,10 @@ public class Loader extends JdbcDaoSupport implements ILoader {
 
   public long getRowsInserted() {
     return rowsInserted;
+  }
+
+  public void setDisturbance(float disturbance) {
+    this.disturbance = disturbance;
+    System.out.println("--->>> disturbance = " + disturbance);
   }
 }
