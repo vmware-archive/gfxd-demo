@@ -175,7 +175,7 @@ def do_generate(opts):
         interval = (time.hour * 60 + time.minute) / 5
         for i in range(total_houses):
             for k, v in houses[i].load(interval).iteritems():
-                print("{0},{1},{2},1,{3},0,{4},{5},{6}".format(idx, stamp, v, k, i, (time.weekday() + 1), interval), file=output_file)
+                print("{0},{1},{2},1,{3},0,{4},{5},{6}".format(idx, stamp, v, k, i, ((time.weekday() + 1) % 7) + 1, interval), file=output_file)
                 idx += 1
 
         time += one_second
