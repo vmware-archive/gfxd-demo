@@ -126,16 +126,6 @@ public class AggregationListener implements AsyncEventListener {
             update.setInt(4, queryRS.getInt("weekday"));
             update.setInt(5, queryRS.getInt("time_slice"));
             update.executeUpdate();
-          } else {
-            PreparedStatement insert = insertStmt.get();
-            insert.setInt(1, eventRS.getInt("house_id"));
-            insert.setInt(2, eventRS.getInt("household_id"));
-            insert.setInt(3, eventRS.getInt("plug_id"));
-            insert.setInt(4, eventRS.getInt("weekday"));
-            insert.setInt(5, eventRS.getInt("time_slice"));
-            insert.setFloat(6, eventRS.getFloat("value"));
-            insert.setInt(7, 1);
-            insert.execute();
           }
         } catch (SQLException ex) {
           ex.printStackTrace();
