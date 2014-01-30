@@ -26,16 +26,15 @@ public class Loader extends JdbcDaoSupport implements ILoader {
     super.setDataSource(dataSource);
   }
 
-  public long insertBatch(final List<String> lines) {
+  public long insertBatch(final List<String[]> lines) {
     String sql = "insert into raw_sensor (id, timestamp, value, property, plug_id, household_id,house_id, weekday, time_slice) values (?,?,?,?,?,?,?,?,?)";
     final Calendar cal = Calendar.getInstance();
-    getJdbcTemplate().batchUpdate(sql, new BatchPreparedStatementSetter() {
 
+    getJdbcTemplate().batchUpdate(sql, new BatchPreparedStatementSetter() {
       @Override
       public void setValues(PreparedStatement ps, int i)
           throws SQLException {
-        final String line = lines.get(i);
-        final String[] split = line.split(",");
+        final String[] split = lines.get(i);
         final long timestamp = Long.parseLong(split[1]);
         ps.setLong(1, Long.parseLong(split[0]));
         ps.setLong(2, timestamp);
@@ -67,8 +66,7 @@ public class Loader extends JdbcDaoSupport implements ILoader {
     rowsInserted += lines.size();
 
     // Return the timestamp of the first row of this batch
-    String[] split = lines.get(0).split(",");
-    return Long.parseLong(split[1]);
+    return Long.parseLong(lines.get(0)[1]);
   }
 
   public long getRowsInserted() {

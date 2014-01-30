@@ -39,6 +39,8 @@ public class LoadRunner {
   // The timestamp of the very first row that is read. This value is in seconds.
   private long startTime = 0;
 
+  private int maxHouseId = Integer.MAX_VALUE;
+
 	public LoadRunner() {
   }
 
@@ -46,9 +48,10 @@ public class LoadRunner {
   public void init() {
     pauseTime = propConfiguration.getInt("thread.pause", 0);
     boostTime = propConfiguration.getInt("demo.boost", 0);
+    maxHouseId = propConfiguration.getInt("demo.houses", Integer.MAX_VALUE);
   }
 
-  public void asyncInsertBatch(final List<String> lines) {
+  public void asyncInsertBatch(final List<String[]> lines) {
 		
 		executor.execute( new Runnable() {
 			
@@ -75,34 +78,41 @@ public class LoadRunner {
 
 	public void run(final String CSV_FILE) {
 
-		List<String> lines = new LinkedList<>();
+		List<String[]> lines = new LinkedList<>();
 		String timestamp = null;
 
 		try (BufferedReader br = Files.newBufferedReader(Paths.get(CSV_FILE),
 				StandardCharsets.UTF_8)) {
 
-			for (String line = null; (line = br.readLine()) != null;) {
-				int commaPos = line.indexOf(",") + 1;
-				final String currTs = line.substring(commaPos, commaPos + 10);
+      // Lines are in this form:
+      // id, timestamp, value, property, plug_id, household_id, house_id
+
+      for (String line = null; (line = br.readLine()) != null;) {
+        String[] split = line.split(",");
+
+        int houseId = Integer.parseInt(split[6]);
+        if (houseId >= maxHouseId) {
+          continue;
+        }
 
 				// first iteration
 				if (timestamp == null) {
-					timestamp = new String(currTs);
-					lines.add(line);
+					timestamp = split[1];
+					lines.add(split);
           startTime = Long.parseLong(timestamp);
 
 				} else {
 					// batch same timestamp objects
-					if (timestamp.equals(currTs)) {
-						lines.add(line);
+					if (timestamp.equals(split[1])) {
+						lines.add(split);
 
 					} else {
 
 						// send batched records and create a new batch
 						this.asyncInsertBatch(lines);
 						lines = new LinkedList<>();
-						lines.add(line);
-						timestamp = currTs;
+						lines.add(split);
+						timestamp = split[1];
 					}
 				}
 
@@ -129,7 +139,7 @@ public class LoadRunner {
 		try (ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"classpath:context.xml")) {
 
-			LoadRunner runner = (LoadRunner) context.getBean("loadRunner"); // context.getBean("loadRunner");
+			LoadRunner runner = (LoadRunner) context.getBean("loadRunner");
 
 			long startTime = System.currentTimeMillis();
 			runner.run(CSV_FILE);
