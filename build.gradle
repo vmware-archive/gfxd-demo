@@ -57,10 +57,21 @@ task schema(type: Exec) {
 }
 schema.mustRunAfter startServer
 
-task loadAverages(type: Exec) {
-  commandLine sqlf, "run", "-file=${projectDir}/scripts/import_load_averages.sql"
+//for Ant filter
+import org.apache.tools.ant.filters.ReplaceTokens
+
+task setupLoadAveragesSql(type: Copy) {
+    File data = file("${projectDir}/data/load_averages-10.csv")
+    File sql = file("${projectDir}/scripts/import_load_averages.sql")
+    from(sql)
+    into("/tmp/demo/")
+    filter(ReplaceTokens, tokens: [DATA_TOKEN: data.path])
 }
-loadAverages.mustRunAfter schema
+
+task loadAverages(type: Exec) {
+  commandLine sqlf, "run", "-file=/tmp/demo/import_load_averages.sql"
+}
+loadAverages.mustRunAfter schema, setupLoadAveragesSql
 
 task cycle(type: Task, dependsOn: [loadAverages, schema, startServer])
 
