@@ -1,4 +1,11 @@
 #!/usr/bin/env python
+#
+# This script is supposed to produce synthesized load usage data on a per
+# 'appliance' basis. Unfortunately it does not provide enough variation thus
+# producing very obviously synthesized results.
+#
+# Currently not used for anything, but perhaps someone will feel the urge to
+# improve it at some point.
 
 from __future__ import print_function
 
