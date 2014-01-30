@@ -4,7 +4,7 @@ apply plugin: 'application'
 
 sourceCompatibility = 1.7
 version = '1.0'
-mainClassName = 'com.pivotal.gfxd.demo.loader.LoadRunner'
+mainClassName = 'com.pivotal.gfxd.demo.mapreduce.LoadAverage'
 
 jar {
   baseName = "gfxd-demo-mapreduce"
@@ -14,6 +14,12 @@ jar {
         'Implementation-Version': version,
         'Main-Class': mainClassName
   }
+
+  doFirst {
+    into( 'lib' ) {
+        from configurations.compile
+    }
+  }
 }
 
 configurations {
@@ -22,6 +28,7 @@ configurations {
 
 repositories {
   mavenCentral()
+  maven { url "http://repo.spring.io/milestone" }
   maven { url "http://repo.spring.io/libs-snapshot" }
 }
 
@@ -30,16 +37,20 @@ run {
     args project.args.split('\\s+')
   }
 }
+ext { GFXD_HOME= '/opt/gemfire/gfxd/PRTS-1.0.0-8/Pivotal_GemFireXD_05Beta_b44310/' }
 
 applicationDefaultJvmArgs = [
 	"-DconfigFile=" + System.getProperty("configFile")
 ]
 
 dependencies {
+  compile files(GFXD_HOME + 'lib/sqlfire.jar')
   compile files(GFXD_HOME + 'lib/sqlfireclient.jar')
   compile 'org.springframework:spring-jdbc:4.0.0.RELEASE'
   compile 'org.springframework:spring-context:4.0.0.RELEASE'
-  compile 'org.springframework.data:spring-data-hadoop:1.0.2.RELEASE'
+  compile ('org.springframework.data:spring-data-hadoop:2.0.0.M4-hadoop22')
+  compile ('org.springframework.data:spring-data-hadoop-core:2.0.0.M4-hadoop22')
+//  compile ('org.apache.hadoop:hadoop-core:2.2.0')
   compile 'org.slf4j:slf4j-api:1.7.5'
   compile 'org.slf4j:slf4j-simple:1.7.5'
   compile group: 'commons-configuration', name: 'commons-configuration', version: '1.10'
