@@ -105,7 +105,7 @@
 
     var eventRateUrl = "/data/random";
 
-    var datasetStartTime = 1390601953;
+    var datasetStartTime = 1377986401;
 
     var eventGraph = new Rickshaw.Graph({
         element: document.querySelector("#event_rate_chart"),
@@ -249,7 +249,6 @@
         this.disturbanceEvent = function(data) {
             clearTimeout(idx);
             idx = setTimeout(function(d, i) {
-                console.log("I feel a disturbance in the force " + d + " " + i);
                 d3.json("/data/disturbance?value=" + d, function (error, json) {
                     if (error) {
                         console.log(error);
