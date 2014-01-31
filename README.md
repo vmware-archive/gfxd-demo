@@ -47,12 +47,22 @@ Only two tables are used by the demo. One is used to hold incoming sensor data (
 
 Although sensor data is recorded per second, the smallest aggregation is 5 minutes, thus each row in `load_averages` represents the average load for a given 5-minute slice, per weekday, per unique plug. Slices are numbered 0-287.
 
+The schema also defines the HDFS store used by the `raw_sensor` table to stream data to Hadoop, which will later be used by the MapReduce job. Remember to set NameNode hostname and port accordingly. 
+
+    CREATE HDFSSTORE sensorStore
+    NameNode 'hdfs://localhost:9000'
+    HomeDir '/sensorStore'
+    BatchSize 10
+    BatchTimeInterval 2000
+
 Data
 ----
 
 Unfortunately the original data provided for this challenge is very large and unwieldy. Included with the source for this demo is pre-computed load_averages data for only 10 houses (approximately 500 plugs) and a much smaller (2 million entries) subset of the original sensor data set. A larger set of data (100 million rows) can be found here...
 
-The provided data is compressed. Make sure to uncompress all files in the `data/` directory.
+The provided data is compressed. Make sure to uncompress all files in the `data/` directory. 
+
+    gunzip load_averages-10.csv.gz sorted2M.csv.gz
 
 Building
 --------
