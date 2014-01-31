@@ -1,7 +1,7 @@
 package com.pivotal.gfxd.demo;
 
-import com.vmware.sqlfire.callbacks.AsyncEventListener;
-import com.vmware.sqlfire.callbacks.Event;
+import com.pivotal.gemfirexd.callbacks.AsyncEventListener;
+import com.pivotal.gemfirexd.callbacks.Event;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -16,9 +16,9 @@ import java.util.List;
  */
 public class AggregationListener implements AsyncEventListener {
 
-  private static final String DRIVER = "com.vmware.sqlfire.jdbc.ClientDriver";
+  private static final String DRIVER = "com.pivotal.gemfirexd.jdbc.ClientDriver";
 
-  private static final String CONN_URL = "jdbc:sqlfire:";
+  private static final String CONN_URL = "jdbc:gemfirexd:";
 
   private static final String SELECT_SQL = "select * from load_averages where plug_id = ? and weekday = ? and time_slice = ?";
 

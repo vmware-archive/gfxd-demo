@@ -30,7 +30,7 @@
     <!--<hdp:job id="LoadAverage"-->
              <!--jar="file:/Users/markito/Projects/Pivotal/workspaces/demo/gfxd-demo/gfxd-demo-mapreduce/build/libs/gfxd-demo-mapreduce-1.0.jar"-->
              <!--input-path="/"-->
-             <!--input-format="com.vmware.sqlfire.hadoop.mapreduce.RowInputFormat"-->
+             <!--input-format="com.pivotal.gemfirexd.hadoop.mapreduce.RowInputFormat"-->
              <!--output-path="/output"-->
              <!--mapper="com.pivotal.gfxd.demo.mapreduce.LoadMapper"-->
              <!--reducer="com.pivotal.gfxd.demo.mapreduce.LoadReducer"  />-->
@@ -55,7 +55,7 @@
         <!--<property name="minimumPoolSize" value="50"/>-->
         <!--<property name="connectionTimeout" value="10000"></property>-->
         <!--<property name="dataSourceClassName"-->
-                  <!--value="com.vmware.sqlfire.internal.jdbc.ClientDataSource"/>-->
+                  <!--value="com.pivotal.gemfirexd.internal.jdbc.ClientDataSource"/>-->
         <!--<property name="dataSourceProperties" ref="dbProps"/>-->
         <!--<property name="poolName" value="springHikariCP"/>-->
     <!--</bean>-->
