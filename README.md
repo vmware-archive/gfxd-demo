@@ -98,6 +98,8 @@ Initially, 5 minutes worth of sensor data will be consumed as quickly as possibl
 
 ![](https://raw2.github.com/gemfire/gfxd-demo/master/images/gfxd-demo-ui.png?token=5313410__eyJzY29wZSI6IlJhd0Jsb2I6Z2VtZmlyZS9nZnhkLWRlbW8vbWFzdGVyL2ltYWdlcy9nZnhkLWRlbW8tdWkucG5nIiwiZXhwaXJlcyI6MTM5MTc2MDA0OH0%3D--6a934275daf639524472d82cf3a6418a196f05dd)
 
+![](images/gfxd-demo-ui.png)
+
 ### Mapreduce 
 
 Once ingestion has been running for a while, the operational data will start to be evicted to HDFS. In order to run the provided MapReduce job, ensure that you have your CLASSPATH set correctly:
