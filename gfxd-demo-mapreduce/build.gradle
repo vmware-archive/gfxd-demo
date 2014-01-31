@@ -37,15 +37,14 @@ run {
     args project.args.split('\\s+')
   }
 }
-ext { GFXD_HOME= '/opt/gemfire/gfxd/PRTS-1.0.0-8/Pivotal_GemFireXD_05Beta_b44310/' }
 
 applicationDefaultJvmArgs = [
 	"-DconfigFile=" + System.getProperty("configFile")
 ]
 
 dependencies {
-  compile files(GFXD_HOME + 'lib/sqlfire.jar')
-  compile files(GFXD_HOME + 'lib/sqlfireclient.jar')
+  compile files(GFXD_HOME + '/lib/sqlfire.jar')
+  compile files(GFXD_HOME + '/lib/sqlfireclient.jar')
   compile 'org.springframework:spring-jdbc:4.0.0.RELEASE'
   compile 'org.springframework:spring-context:4.0.0.RELEASE'
   compile ('org.springframework.data:spring-data-hadoop:2.0.0.M4-hadoop22')
