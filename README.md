@@ -1,72 +1,124 @@
 GemfireXD Demo
 ==============
 
-## Note
-For now, this doc is intended to be a README-based spec. As such it will describe how things are _intended_ to work, but those intentions may not be implemented yet. Features not implemented will be expressed as **_bolded italics_**.
-
 Background
 ----------
 
 This demo is based on the [DEBS 2014 Challenge]. It uses the data set presented there and strives to achieve the objectives of the challenge.
 
+The demo is intended to illustrate how time-series data may be ingested into GemFireXD, evicted to Hadoop/HDFS, prcessed there and then have the results be fed back into GemFireXD.
+
 Structure
 ---------
 
-The repo consists of 3 sub-projects:
+The repo consists of 4 sub-projects:
 
 * `gfxd-demo-loader` - The loader which used to stream events into the system.
-* `gfxd-demo-mapreduce` - **_The mapreduce component_**
-* `gfxd-demo-web` - **_The web UI component_**
+* `gfxd-demo-mapreduce` - The MapReduce component which produces load prediction data.
+* `gfxd-demo-web` - The web UI component.
+* `gfxd-demo-aeq-listener` - An optional AsyncEventQueue component which serves the same purpose as the MapReduce part. Use this if you don't have Hadoop.
+
+Schema
+------
+
+Only two tables are used by the demo. One is used to hold incoming sensor data (`raw_sensor`) and the other is used to hold load average data used for load prediction (`load_averages`). Both tables are partitioned by `house_id`.
+
+    -- raw_sensor table
+
+    id           bigint
+    timestamp    bigint
+    value        float(23)
+    property     smallint
+    plug_id      integer
+    household_id integer
+    house_id     integer
+    weekday      smallint
+    time_slice   smallint
+
+    -- load_averages table
+
+    house_id     integer
+    household_id integer
+    plug_id      integer
+    weekday      smallint
+    time_slice   smallint
+    total_load   float(23)
+    event_count  integer
+
+Although sensor data is recorded per second, the smallest aggregation is 5 minutes, thus each row in `load_averages` represents the average load for a given 5-minute slice, per weekday, per unique plug. Slices are numbered 0-287.
+
+Data
+----
+
+Unfortunately the original data provided for this challenge is very large and unwieldy. Included with the source for this demo is pre-computed load_averages data for only 10 houses (approximately 500 plugs) and a much smaller (2 million entries) subset of the original sensor data set. A larger set of data (100 million rows) can be found here...
+
+The provided data is compressed. Make sure to uncompress all files in the `data/` directory.
 
 Building
 --------
 
-The demo is built using Gradle **_which is bundled with the source_**.
+The demo is built using Gradle which is bundled.
 
-Several Gradle tasks are available:
+You will need a release of GemFireXD - specifically the sqlfire.jar and sqlfireclient.jar files.
 
-* `jettyRun <path to csv file` - **_When run with a parameter pointing to a CSV file containing events, the webapp will be run and will automatically start ingesting events from the file._**
-* `loader <path to csv file` - **_This option will start the loader as a standalone utility and ingest events from the file provided._**
+Create or edit `gradle.properties` in the source root directory defining the GFXD_HOME property which should point to your GemFireXD product directory. For example
 
-gfxd-demo-loader
-----------------
+    # gradle.properties file
+    GFXD_HOME = /opt/gemfirexd-0.5-beta
 
-This component is a Spring based app that performs batch insertion on GemFireXD using Spring JDBC, HikariCP JDBC pool and SpringBoot. 
+Then simply build with:
 
-The input is via CSV File available at: https://drive.google.com/file/d/0B0TBL8JNn3JgV29HZWhSSVREQ0E/edit?usp=sharing. More details about the file structure here [DEBS 2014 Challenge]
+    ./gradlew build
 
-### Configuration
+Running
+-------
 
-* `config.properties` - Used for threadPool and queue size. It can also define the batch size for batch insertion.
-* `db.properties` - Database connectivity parameters.
-* `context.xml` - Spring context configuration.
-        
-### Build & Run
+Running the demo involves 3 main phases, namely _setup_, _ingest_ and _mapreduce_.
 
-For details about how to install Gradle check http://www.gradle.org/installation
+### Setup
 
-Before building, please edit the GFXD_HOME variable in gradle.properties file in order to point to your GemFireXD installation directory. This is step is necessary in order to bundle sqlfireclient.jar file into the build.  
+The setup phase consists of starting up a GemFireXD cluster and populating the load_averages table. This step is achieved with:
 
-After executing `gradle build`, the jar will be available under gfxd-demo-loader/build/libs/
+    ./gradlew cycle
 
-It can also be built from STS or IntelliJ, but just notice that by default deps may be downloaded to different places.
+This task performs the following actions:
+* Stop the current GemFireXD server
+* Clean up the server's directory - `server1/`
+* Start a GemFireXD server
+* Create the necessary tables
+* Import data into the `load_averages` table
 
-Execute directly with: `java -jar gfxd-demo-loader/build/libs/PlugDataLoader-1.0.jar [PATH_TO_CSV_FILE]`
+### Ingest
 
-**_Or via Gradle with_**: `gradle loader [PATH_TO_CSV_FILE]`
+This step starts up the web application which serves the UI as well as perfoming the ingestion. Run with:
+
+    ./gradlew gfxd-demo-web:jettyRun -DloadFile=$PWD/data/sorted2M.csv -DconfigFile=$PWD/gfxd-demo-loader/config.properties
+
+Initially, 5 minutes worth of sensor data will be consumed as quickly as possible and then the data will be ingested by the second. This is done to seed the operational data so that the prediction model will have data to work with. The UI can be checked at `http://localhost:8080/ui/index.html`.
+
+![](http://raw.github.com/gemfire/gfxd-demo/images/gfxd-demo-ui.png)
+
+### Mapreduce 
+
+Once ingestion has been running for a while, the operational data will start to be evicted to HDFS. In order to run the provided MapReduce job, ensure that you have your CLASSPATH set correctly:
+
+    export CLASSPATH=$CLASSPATH:gfxd-demo-mapreduce/build/libs/gfxd-demo-mapreduce-1.0.jar
+
+Ensure that you have HADOOP_HOME and other hadoop environment variables set.
+
+Call the MapReduce job:
+
+    yarn jar gfxd-demo-mapreduce-1.0.jar -Dmapreduce.framework.name=local \
+        -Dmapreduce.cluster.local.dir=/tmp/mr-local \
+        -Dsqlfire.url="jdbc:sqlfire://localhost:1527"
+
+The job will generate entries on `load_averages` table, which will be used for prediction analysis.
+
+### AsyncEventQueue Listener
+
+If you do not have a Hadoop environment available, you may simulate the MapReduce functionality by commenting out the relevant section in the `data/schema.sql` script to activate the `AggregationListener`.
+
 
 
 [DEBS 2014 Challenge]:http://www.cse.iitb.ac.in/debs2014/?page_id=42
 
-gfxd-demo-web
--------------
-
-In order to set up and 'prime' the database, run the following:
-
-    gradle cycle
-
-This command will restart GemfireXD, create the necessary schemas and load some pre-computed values into the `load_averages` table.
-
-This is the web frontend for the demo. Run it with:
-
-    gradle gfxd-demo-web:jettyRun -DloadFile=[PATH_TO_CSV_FILE] -DconfigFile=[PATH_TO_CONFIG_FILE]
