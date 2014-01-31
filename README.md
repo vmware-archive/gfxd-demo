@@ -96,7 +96,7 @@ This step starts up the web application which serves the UI as well as perfoming
 
 Initially, 5 minutes worth of sensor data will be consumed as quickly as possible and then the data will be ingested by the second. This is done to seed the operational data so that the prediction model will have data to work with. The UI can be checked at `http://localhost:8080/ui/index.html`.
 
-![](http://raw.github.com/gemfire/gfxd-demo/images/gfxd-demo-ui.png)
+![](https://raw.github.com/gemfire/gfxd-demo/master/images/gfxd-demo-ui.png)
 
 ### Mapreduce 
 
