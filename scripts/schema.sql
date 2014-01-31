@@ -10,12 +10,10 @@ create table raw_sensor
     house_id integer,
     weekday smallint,
     time_slice smallint
---    CONSTRAINT RAW_SENSOR_PK PRIMARY KEY (ID)
   )
   partition by column (house_id)
   eviction by lrucount 1000000
   evictaction destroy
---  persistent asynchronous
 ;
 
 drop index if exists raw_sensor_idx;
@@ -38,15 +36,21 @@ create table load_averages
 drop index if exists load_averages_idx;
 create index load_averages_idx on load_averages (plug_id, weekday, time_slice);
 
-drop asynceventlistener if exists AggListener;
-create asynceventlistener AggListener
-(
-   listenerclass 'com.pivotal.gfxd.demo.AggregationListener'
-   initparams ''
-   batchsize 1000
-   batchtimeinterval 1000
-) server groups (group1);
-
-alter table raw_sensor set asynceventlistener (AggListener);
-
-call sys.start_async_event_listener('AggListener');
+-- ------  Start AEQ section ---------
+-- Uncomment the following section to enable the AsyncEventQueue listener
+-- if you are not using Hadoop.
+--
+-- drop asynceventlistener if exists AggListener;
+-- create asynceventlistener AggListener
+-- (
+--    listenerclass 'com.pivotal.gfxd.demo.AggregationListener'
+--    initparams ''
+--    batchsize 1000
+--    batchtimeinterval 1000
+-- ) server groups (group1);
+-- 
+-- alter table raw_sensor set asynceventlistener (AggListener);
+-- 
+-- call sys.start_async_event_listener('AggListener');
+--
+-- ------  End AEQ section ---------
