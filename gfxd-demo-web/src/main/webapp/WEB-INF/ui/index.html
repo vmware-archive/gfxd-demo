@@ -22,7 +22,7 @@
                     <img src="img/logo.png" height="60" width="60" alt="logo"/>
                 </a>
                 -->
-                GemfireXD Smart Grid Demo
+                GemfireXD Sensor Demo
             </h1>
         </div>
     </div>
@@ -49,7 +49,8 @@
                                         <div id="event_rate_chart"></div>
                                     </div>
                                     <div class="offset1 span3">
-                                        <p>Event Rate: <span data-bind="text: eventRate"></span></p>
+                                        <p>Event Rate: <span data-bind="text: eventRate"></span>/s</p>
+                                        <!--
                                         <label class="radio">
                                             <input type="radio" name="liveRandomRadio" value="live"
                                                    data-bind="checked: liveRandom"/>
@@ -60,6 +61,7 @@
                                                    data-bind="checked: liveRandom"/>
                                             Random data
                                         </label>
+                                        -->
                                     </div>
                                 </div>
                             </div>
@@ -82,14 +84,14 @@
                             <button class="btn-small btn-info" data-bind="click: runMapReduce">Run MapReduce</button>
                         </div>
                         <br/>
-
+                        <p>Disturbance: <span data-bind="text: disturbance"></span>%</p>
+                        <input type="range" name="points" min="-100" max="100" step="1" value="0" data-bind="value: disturbance, event: {change: disturbanceEvent}">
+                        <br/>
+                        <br/>
                         <div>
                             <label>Time Shift: <span data-bind="text: timeShift"></span></label>
                             <input type="text" placeholder="0" class="input-small" data-bind="value: datasetStartTime">
                         </div>
-                        <br/>
-                        <p>Disturbance: <span data-bind="text: disturbance"></span>%</p>
-                        <input type="range" name="points" min="-100" max="100" step="1" value="0" data-bind="value: disturbance, event: {change: disturbanceEvent}">
                     </div>
                 </div>
             </div>
@@ -105,7 +107,7 @@
 
     var eventRateUrl = "/data/random";
 
-    var datasetStartTime = 1377986401;
+    var datasetStartTime = 300 + 1377986401;
 
     var eventGraph = new Rickshaw.Graph({
         element: document.querySelector("#event_rate_chart"),

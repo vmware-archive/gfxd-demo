@@ -50,8 +50,10 @@ public class PredictionService extends JdbcDaoSupport {
       float[] lastDays = new float[3];
       // Find the average for the last 3 days
       for (int i = 1; i < 4; i++) {
+        // Weekdays start at 1 so subtract 1 in order to be able to do modulo
+        // arithmetic. Then add 1 at the end again.
         lastDays[i - 1] =
-            getHistoricalAverageLoad((sliceNext.getWeekday() - i) % 7,
+            getHistoricalAverageLoad(((sliceNext.getWeekday() - 1 - i) % 7) + 1,
                 sliceNext.getIntervalStart(), sliceNext.getIntervalEnd());
       }
       median = median(lastDays);
@@ -137,6 +139,9 @@ public class PredictionService extends JdbcDaoSupport {
 
     MyRCH rch = new MyRCH(rowWithCount);
     template.query(sql, params, rch);
+
+    System.out.println("--->>> weekday=" + weekDay + " start=" + intervalStart +
+        " end=" + intervalEnd + " load=" + rch.getLoad() + " count=" + rch.getCount());
 
     return rch.getLoad() / rch.getCount();
   }
