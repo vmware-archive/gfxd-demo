@@ -102,8 +102,8 @@
     <orderEntry type="library" exported="" name="Gradle: jersey-server-1.9" level="project" />
     <orderEntry type="library" exported="" name="Gradle: javax.inject-1" level="project" />
     <orderEntry type="library" exported="" name="Gradle: spring-data-hadoop-batch-2.0.0.M4-hadoop22" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: sqlfire" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: sqlfireclient" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: gemfirexd" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: gemfirexd-client" level="project" />
   </component>
 </module>
 

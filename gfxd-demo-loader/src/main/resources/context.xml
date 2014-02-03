@@ -29,7 +29,7 @@
 		<property name="minimumPoolSize" value="50" />
 		<property name="connectionTimeout" value="10000"></property>
 		<property name="dataSourceClassName"
-			value="com.vmware.sqlfire.internal.jdbc.ClientDataSource" />
+			value="com.pivotal.gemfirexd.internal.jdbc.ClientDataSource" />
 		<property name="dataSourceProperties" ref="dbProps" />
 		<property name="poolName" value="springHikariCP" />
 	</bean>

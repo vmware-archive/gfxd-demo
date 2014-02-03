@@ -29,12 +29,12 @@ dependencies {
 }
 
 def gfxdWorkDir = new File("server1")
-def sqlf = GFXD_HOME + "/bin/sqlf"
+def gfxd = GFXD_HOME + "/bin/gfxd"
 def appJars = configurations.appJars.collect { it }
 
 task stopServer(type: Exec) {
   ignoreExitValue = true
-  commandLine sqlf, "server", "stop", "-dir=" + gfxdWorkDir
+  commandLine gfxd, "server", "stop", "-dir=" + gfxdWorkDir
 }
 
 task startServer(dependsOn: stopServer, type: Exec) {
@@ -44,7 +44,7 @@ task startServer(dependsOn: stopServer, type: Exec) {
   }
 
   ignoreExitValue = true
-  commandLine sqlf, "server", "start",
+  commandLine gfxd, "server", "start",
       "-dir=" + gfxdWorkDir,
       "-heap-size=2G",
       "-server-groups=group1",
@@ -53,7 +53,7 @@ task startServer(dependsOn: stopServer, type: Exec) {
 }
 
 task schema(type: Exec) {
-  commandLine sqlf, "run", "-file=${projectDir}/scripts/schema.sql"
+  commandLine gfxd, "run", "-file=${projectDir}/scripts/schema.sql"
 }
 schema.mustRunAfter startServer
 
@@ -70,7 +70,7 @@ task setupLoadAveragesSql(type: Copy) {
 }
 
 task loadAverages(type: Exec, dependsOn: [setupLoadAveragesSql]) {
-  commandLine sqlf, "run", "-file=/tmp/demo/import_load_averages.sql"
+  commandLine gfxd, "run", "-file=/tmp/demo/import_load_averages.sql"
 }
 loadAverages.mustRunAfter schema, setupLoadAveragesSql
 

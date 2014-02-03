@@ -1,10 +1,10 @@
 package com.pivotal.gfxd.demo.mapreduce;
 
-import com.vmware.sqlfire.hadoop.mapreduce.Key;
-import com.vmware.sqlfire.hadoop.mapreduce.Row;
-import com.vmware.sqlfire.hadoop.mapreduce.RowInputFormat;
-import com.vmware.sqlfire.hadoop.mapreduce.RowOutputFormat;
-import com.vmware.sqlfire.internal.engine.SqlfDataSerializable;
+import com.pivotal.gemfirexd.hadoop.mapreduce.Key;
+import com.pivotal.gemfirexd.hadoop.mapreduce.Row;
+import com.pivotal.gemfirexd.hadoop.mapreduce.RowInputFormat;
+import com.pivotal.gemfirexd.hadoop.mapreduce.RowOutputFormat;
+import com.pivotal.gemfirexd.internal.engine.SqlfDataSerializable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
@@ -103,7 +103,7 @@ public class LoadAverage extends Configured implements Tool {
         String hdfsHomeDir = "/sensorStore"; //args[1];
         String tableName = "RAW_SENSOR";
         String outTableName = "LOAD_AVERAGES";
-        String gfxdURL = conf.get("sqlfire.url", "jdbc:sqlfire://localhost:1527");
+        String gfxdURL = conf.get("gemfirexd.url", "jdbc:gemfirexd://localhost:1527");
 
         outputPath.getFileSystem(conf).delete(outputPath, true);
 
