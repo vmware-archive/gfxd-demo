@@ -4,7 +4,7 @@ import com.pivotal.gemfirexd.hadoop.mapreduce.Key;
 import com.pivotal.gemfirexd.hadoop.mapreduce.Row;
 import com.pivotal.gemfirexd.hadoop.mapreduce.RowInputFormat;
 import com.pivotal.gemfirexd.hadoop.mapreduce.RowOutputFormat;
-import com.pivotal.gemfirexd.internal.engine.SqlfDataSerializable;
+import com.pivotal.gemfirexd.internal.engine.GfxdDataSerializable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
@@ -84,7 +84,7 @@ public class LoadAverage extends Configured implements Tool {
                     loadKey = model;
                 }
             }
-//
+
             LoadAverageModel result = new LoadAverageModel(loadKey.getHouse_id(), loadKey.getHousehold_id(),
                     loadKey.getPlug_id(), loadKey.getWeekday(), loadKey.getTime_slice(), valueSum,
                     numEvents);
@@ -95,7 +95,7 @@ public class LoadAverage extends Configured implements Tool {
 
     @Override
     public int run(String[] args) throws Exception {
-        SqlfDataSerializable.initTypes();
+        GfxdDataSerializable.initTypes();
         Configuration conf = getConf();
 
         Path outputPath = new Path("/output");
