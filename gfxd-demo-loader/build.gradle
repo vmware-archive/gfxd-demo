@@ -32,7 +32,7 @@ run {
 }
 
 applicationDefaultJvmArgs = [
-	"-DconfigFile=" + System.getProperty("configFile")
+  "-DconfigFile=" + System.getProperty("configFile")
 ]
 
 dependencies {

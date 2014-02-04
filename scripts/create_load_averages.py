@@ -3,7 +3,7 @@
 # This script will process the sensor raw data file and create a sqlite
 # load_averages database. The script will print out a value for every minute's
 # worth of data which has been read. You want to make sure to generate at least
-# 1 week worth of data (10,080 minutes).
+# 1 week's worth of data (10,080 minutes).
 #
 # The script will also populate the plug_id column with a globally unique value
 # instead of a per-household unique value. See get_plug_id() for the formula.
