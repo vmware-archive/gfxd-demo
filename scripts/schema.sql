@@ -42,11 +42,12 @@ create table load_averages
     event_count integer
 
   )
-  partition by column (house_id);
+  partition by column (house_id)
+  colocate with (raw_sensor);
 
 -- required for MR job updates
- alter table  load_averages
-   add constraint LOAD_AVERAGES_PK PRIMARY KEY (house_id,plug_id,weekday,time_slice);
+alter table load_averages
+    add constraint LOAD_AVERAGES_PK PRIMARY KEY (house_id, plug_id, weekday, time_slice);
 
 drop index if exists load_averages_idx;
 create index load_averages_idx on load_averages (plug_id, weekday, time_slice);
