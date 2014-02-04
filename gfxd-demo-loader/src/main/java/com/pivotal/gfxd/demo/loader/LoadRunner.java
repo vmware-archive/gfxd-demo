@@ -8,9 +8,10 @@ import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Executor;
-import java.util.logging.Logger;
 
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.stereotype.Component;
@@ -20,7 +21,7 @@ import javax.annotation.PostConstruct;
 @Component("loadRunner")
 public class LoadRunner {
 
-	static Logger logger = Logger
+	private static Logger logger = LoggerFactory
 			.getLogger(LoadRunner.class.getCanonicalName());
 
 	@Autowired
@@ -126,7 +127,7 @@ public class LoadRunner {
 			this.asyncInsertBatch(lines);
 
 		} catch (IOException ioex) {
-			logger.severe("An error ocurred during batch insertion or the file was not accessible. Message: "
+			logger.error("An error ocurred during batch insertion or the file was not accessible. Message: "
 					+ ioex.getMessage());
 		}
 
@@ -145,8 +146,7 @@ public class LoadRunner {
 			runner.run(CSV_FILE);
 			long endTime = System.currentTimeMillis();
 
-			System.out.println("Total execution time: " + (endTime - startTime)
-					+ "ms");
+			logger.info("Total execution time: " + (endTime - startTime) + "ms");
 		}
 	}
 

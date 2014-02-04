@@ -7,6 +7,8 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
@@ -14,6 +16,9 @@ import org.springframework.stereotype.Component;
 
 @Component("loader")
 public class Loader extends JdbcDaoSupport implements ILoader {
+
+  private static final Logger LOG = LoggerFactory.getLogger(
+      Loader.class.getName());
 
   final int MINUTES_PER_INTERVAL = 5; // 5 minute unit slots
 
@@ -69,9 +74,9 @@ public class Loader extends JdbcDaoSupport implements ILoader {
     int timeSlice = (cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(
         Calendar.MINUTE)) / MINUTES_PER_INTERVAL;
 
-    System.out.println(
-        Thread.currentThread().getId() + " - rows=" + lines.size() +
-            " weekday=" + weekDay + " slice=" + timeSlice + " stamp=" + lines.get(0)[1]);
+    LOG.debug("rows=" + lines.size() +
+        " weekday=" + weekDay + " slice=" + timeSlice +
+        " stamp=" + lines.get(0)[1]);
 
     rowsInserted += lines.size();
 
@@ -93,6 +98,6 @@ public class Loader extends JdbcDaoSupport implements ILoader {
 
   public void setDisturbance(float disturbance) {
     this.disturbance = disturbance;
-    System.out.println("--->>> disturbance = " + disturbance);
+    LOG.debug("--->>> disturbance = " + disturbance);
   }
 }

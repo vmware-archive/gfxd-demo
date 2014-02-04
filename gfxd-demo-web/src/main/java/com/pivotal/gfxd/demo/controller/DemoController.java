@@ -4,6 +4,8 @@ import com.pivotal.gfxd.demo.TimeSlice;
 import com.pivotal.gfxd.demo.entity.TimestampValue;
 import com.pivotal.gfxd.demo.loader.ILoader;
 import com.pivotal.gfxd.demo.services.PredictionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpSession;
-import java.util.logging.Logger;
 
 /**
  * @author Jens Deppe
@@ -23,7 +24,7 @@ import java.util.logging.Logger;
 @RequestMapping("/data")
 public class DemoController {
 
-  private static final Logger LOG = Logger.getLogger(
+  private static final Logger LOG = LoggerFactory.getLogger(
       DemoController.class.getName());
 
   @Autowired
@@ -79,11 +80,11 @@ public class DemoController {
 
     long start = System.currentTimeMillis();
     float predictedLoad = predictionSvc.predictedLoad(then , TimeSlice.Interval.FIVE_MINUTE);
-    System.out.println("Prediction took " + (System.currentTimeMillis() - start) + "ms + " + predictedLoad + " for time " + now);
+    LOG.debug("Prediction took " + (System.currentTimeMillis() - start) + "ms + " + predictedLoad + " for time " + now);
 
     start = System.currentTimeMillis();
     float currentLoad = predictionSvc.currentLoad(then , TimeSlice.Interval.FIVE_MINUTE);
-    System.out.println("Current load query took " + (System.currentTimeMillis() - start) + "ms + " + currentLoad + " for time " + now);
+    LOG.debug("Current load query took " + (System.currentTimeMillis() - start) + "ms + " + currentLoad + " for time " + now);
 
     /**
      * Respond with the current timestamp even though the data is calculated

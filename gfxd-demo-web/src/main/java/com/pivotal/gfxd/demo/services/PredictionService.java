@@ -1,6 +1,8 @@
 package com.pivotal.gfxd.demo.services;
 
 import com.pivotal.gfxd.demo.TimeSlice;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
@@ -17,6 +19,9 @@ import java.util.Arrays;
  */
 @Component("predictionService")
 public class PredictionService extends JdbcDaoSupport {
+
+  private static final Logger LOG = LoggerFactory.getLogger(
+      PredictionService.class.getName());
 
   private static final String LOAD_AVG_OVERALL_QUERY =
       "select total_load, event_count from load_averages where weekday = ? and time_slice >= ? and time_slice < ?";
@@ -140,7 +145,7 @@ public class PredictionService extends JdbcDaoSupport {
     MyRCH rch = new MyRCH(rowWithCount);
     template.query(sql, params, rch);
 
-    System.out.println("--->>> weekday=" + weekDay + " start=" + intervalStart +
+    LOG.debug("--->>> weekday=" + weekDay + " start=" + intervalStart +
         " end=" + intervalEnd + " load=" + rch.getLoad() + " count=" + rch.getCount());
 
     return rch.getLoad() / rch.getCount();
