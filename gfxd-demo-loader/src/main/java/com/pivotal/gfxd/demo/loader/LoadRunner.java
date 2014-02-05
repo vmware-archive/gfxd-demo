@@ -137,17 +137,17 @@ public class LoadRunner {
 
 		final String CSV_FILE = args[0];
 
+    long startTime = System.currentTimeMillis();
 		try (ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"classpath:context.xml")) {
 
 			LoadRunner runner = (LoadRunner) context.getBean("loadRunner");
 
-			long startTime = System.currentTimeMillis();
 			runner.run(CSV_FILE);
-			long endTime = System.currentTimeMillis();
 
-			logger.info("Total execution time: " + (endTime - startTime) + "ms");
 		}
+    long endTime = System.currentTimeMillis();
+    logger.info("Total execution time: " + (endTime - startTime) + "ms");
 	}
 
 }
