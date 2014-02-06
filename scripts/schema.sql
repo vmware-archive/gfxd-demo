@@ -28,7 +28,7 @@ create table raw_sensor
 
 
 drop index if exists raw_sensor_idx;
-create index raw_sensor_idx on raw_sensor (plug_id, weekday, time_slice);
+create index raw_sensor_idx on raw_sensor (weekday, time_slice, plug_id);
 
 drop table if exists load_averages;
 create table load_averages
@@ -50,7 +50,7 @@ alter table load_averages
     add constraint LOAD_AVERAGES_PK PRIMARY KEY (house_id, plug_id, weekday, time_slice);
 
 drop index if exists load_averages_idx;
-create index load_averages_idx on load_averages (plug_id, weekday, time_slice);
+create index load_averages_idx on load_averages (weekday, time_slice, plug_id);
 
 -- ------  Start AEQ section ---------
 -- Uncomment the following section to enable the AsyncEventQueue listener

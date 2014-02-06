@@ -25,11 +25,11 @@ public class AggregationListener implements AsyncEventListener {
 
   private static final String CONN_URL = "jdbc:gemfirexd:";
 
-  private static final String SELECT_SQL = "select * from load_averages where plug_id = ? and weekday = ? and time_slice = ?";
+  private static final String SELECT_SQL = "select * from load_averages where weekday=? and time_slice=? and plug_id=?";
 
   private static final String INSERT_SQL = "insert into load_averages values (?, ?, ?, ?, ?, ?, ?)";
 
-  private static final String UPDATE_SQL = "update load_averages set total_load = ?, event_count = ? where plug_id = ? and weekday = ? and time_slice = ?";
+  private static final String UPDATE_SQL = "update load_averages set total_load=?, event_count=? where weekday=? and time_slice=? and plug_id=?";
 
   //load driver
   static {
@@ -118,9 +118,9 @@ public class AggregationListener implements AsyncEventListener {
             continue;
           }
           PreparedStatement s = selectStmt.get();
-          s.setInt(1, eventRS.getInt("plug_id"));
-          s.setInt(2, eventRS.getInt("weekday"));
-          s.setInt(3, eventRS.getInt("time_slice"));
+          s.setInt(1, eventRS.getInt("weekday"));
+          s.setInt(2, eventRS.getInt("time_slice"));
+          s.setInt(3, eventRS.getInt("plug_id"));
           ResultSet queryRS = s.executeQuery();
 
           if (queryRS.next()) {
@@ -128,9 +128,9 @@ public class AggregationListener implements AsyncEventListener {
             update.setFloat(1,
                 queryRS.getFloat("total_load") + eventRS.getFloat("value"));
             update.setInt(2, queryRS.getInt("event_count") + 1);
-            update.setInt(3, queryRS.getInt("plug_id"));
-            update.setInt(4, queryRS.getInt("weekday"));
-            update.setInt(5, queryRS.getInt("time_slice"));
+            update.setInt(3, queryRS.getInt("weekday"));
+            update.setInt(4, queryRS.getInt("time_slice"));
+            update.setInt(5, queryRS.getInt("plug_id"));
             update.executeUpdate();
           }
         } catch (SQLException ex) {
