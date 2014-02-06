@@ -70,28 +70,27 @@ public class DemoController {
       produces = "application/json",
       method = RequestMethod.GET)
   @ResponseBody
-  public ResponseEntity<TimestampValue> getPrediction(
-      @RequestParam(value="delta", required=false) Integer delta) {
-    long now = System.currentTimeMillis() / 1000;
-    long then = now;
-    if (delta != null) {
-      then -= delta;
-    }
-
+  public ResponseEntity<TimestampValue> getPrediction() {
     long start = System.currentTimeMillis();
-    float predictedLoad = predictionSvc.predictedLoad(then , TimeSlice.Interval.FIVE_MINUTE);
-    LOG.debug("Prediction took " + (System.currentTimeMillis() - start) + "ms + " + predictedLoad + " for time " + now);
+    long startSeconds = start / 1000;
+
+    float predictedLoad =  predictionSvc.predictedLoad(startSeconds,
+        TimeSlice.Interval.FIVE_MINUTE);
+    LOG.debug("Prediction took " + (System.currentTimeMillis() - start) +
+        "ms + " + predictedLoad + " for time " + startSeconds);
 
     start = System.currentTimeMillis();
-    float currentLoad = predictionSvc.currentLoad(then , TimeSlice.Interval.FIVE_MINUTE);
-    LOG.debug("Current load query took " + (System.currentTimeMillis() - start) + "ms + " + currentLoad + " for time " + now);
+    float currentLoad = predictionSvc.currentLoad(startSeconds,
+        TimeSlice.Interval.FIVE_MINUTE);
+    LOG.debug("Current load query took " + (System.currentTimeMillis() - start) +
+        "ms + " + currentLoad + " for time " + startSeconds);
 
     /**
      * Respond with the current timestamp even though the data is calculated
      * from past data. Seeing that the client sent the delta, it can always
      * re-adjust if it wants to.
      */
-    TimestampValue tv = new TimestampValue(now);
+    TimestampValue tv = new TimestampValue(startSeconds);
     tv.add("predict", predictedLoad);
     tv.add("current", currentLoad);
 

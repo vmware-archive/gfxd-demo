@@ -37,6 +37,10 @@ public class LoadRunner {
 
   private long boostTime = 0;
 
+  // This is the time (in seconds) by which the event stream timestamp needs to
+  // be adjusted to make it look like it is happening now.
+  private long deltaAdjust = 0;
+
   // The timestamp of the very first row that is read. This value is in seconds.
   private long startTime = 0;
 
@@ -52,14 +56,13 @@ public class LoadRunner {
     maxHouseId = propConfiguration.getInt("demo.houses", Integer.MAX_VALUE);
   }
 
-  public void asyncInsertBatch(final List<String[]> lines) {
+  public void asyncInsertBatch(final List<String[]> lines, final long timestamp) {
 		
 		executor.execute( new Runnable() {
-			
 			@Override
 			public void run() {
-				long ts = loader.insertBatch(lines);
-        if (startTime + boostTime < ts) {
+				loader.insertBatch(lines, timestamp);
+        if (startTime + deltaAdjust + boostTime < timestamp) {
           pause();
         }
 			}
@@ -96,11 +99,20 @@ public class LoadRunner {
           continue;
         }
 
+        // We only care about 'load' values at the moment
+        int property = Integer.parseInt(split[3]);
+        if (property != 1) {
+          continue;
+        }
+
 				// first iteration
 				if (timestamp == null) {
 					timestamp = split[1];
 					lines.add(split);
           startTime = Long.parseLong(timestamp);
+          // The stream of events need to appear as though they started
+          // 'boostTime' seconds ago.
+          deltaAdjust = (System.currentTimeMillis() / 1000) - startTime - boostTime;
 
 				} else {
 					// batch same timestamp objects
@@ -110,24 +122,18 @@ public class LoadRunner {
 					} else {
 
 						// send batched records and create a new batch
-						this.asyncInsertBatch(lines);
+						this.asyncInsertBatch(lines, Long.parseLong(timestamp) + deltaAdjust);
 						lines = new LinkedList<>();
 						lines.add(split);
 						timestamp = split[1];
 					}
 				}
-
-				// batch by number of items
-				// if (lines.size() >= propConfiguration.getInt("batch.size")) {
-				// //this.asyncInsertBatch(lines);
-				// lines = new LinkedList<>();
-				// }
 			}
 			// insert last pending batch
-			this.asyncInsertBatch(lines);
+			this.asyncInsertBatch(lines, Long.parseLong(timestamp) + deltaAdjust);
 
 		} catch (IOException ioex) {
-			logger.error("An error ocurred during batch insertion or the file was not accessible. Message: "
+			logger.error("An error occurred during batch insertion or the file was not accessible. Message: "
 					+ ioex.getMessage());
 		}
 

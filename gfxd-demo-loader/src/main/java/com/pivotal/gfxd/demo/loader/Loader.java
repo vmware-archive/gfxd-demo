@@ -31,7 +31,7 @@ public class Loader extends JdbcDaoSupport implements ILoader {
     super.setDataSource(dataSource);
   }
 
-  public long insertBatch(final List<String[]> lines) {
+  public void insertBatch(final List<String[]> lines, final long timestamp) {
     String sql = "insert into raw_sensor (id, timestamp, value, property, plug_id, household_id, house_id, weekday, time_slice) values (?,?,?,?,?,?,?,?,?)";
     final Calendar cal = Calendar.getInstance();
 
@@ -40,7 +40,6 @@ public class Loader extends JdbcDaoSupport implements ILoader {
       public void setValues(PreparedStatement ps, int i)
           throws SQLException {
         final String[] split = lines.get(i);
-        final long timestamp = Long.parseLong(split[1]);
         int plugId = Integer.parseInt(split[4]);
         int householdId = Integer.parseInt(split[5]);
         int houseId = Integer.parseInt(split[6]);
@@ -69,19 +68,16 @@ public class Loader extends JdbcDaoSupport implements ILoader {
       }
     });
 
-    cal.setTimeInMillis(Long.parseLong(lines.get(0)[1]) * 1000L);
+    cal.setTimeInMillis(timestamp * 1000L);
     int weekDay = cal.get(Calendar.DAY_OF_WEEK);
     int timeSlice = (cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(
         Calendar.MINUTE)) / MINUTES_PER_INTERVAL;
 
     LOG.debug("rows=" + lines.size() +
         " weekday=" + weekDay + " slice=" + timeSlice +
-        " stamp=" + lines.get(0)[1]);
+        " stamp=" + timestamp + " now=" + (int)(System.currentTimeMillis() / 1000));
 
     rowsInserted += lines.size();
-
-    // Return the timestamp of the first row of this batch
-    return Long.parseLong(lines.get(0)[1]);
   }
 
   private int computePlugId(int plugId, int householdId, int houseId) {

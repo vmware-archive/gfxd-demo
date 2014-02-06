@@ -10,9 +10,9 @@ public interface ILoader {
   /**
    * Insert a batch of sensor data, read from a CSV file.
    * @param lines
-   * @return the timestamp of the first row in the batch
+   * @param timestamp the timestamp (seconds) associated with this batch
    */
-	public long insertBatch(final List<String[]> lines);
+	public void insertBatch(final List<String[]> lines, long timestamp);
 
   /**
    * Return the total number of rows inserted so far.

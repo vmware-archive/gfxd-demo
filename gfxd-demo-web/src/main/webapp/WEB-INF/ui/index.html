@@ -84,14 +84,9 @@
                             <button class="btn-small btn-info" data-bind="click: runMapReduce">Run MapReduce</button>
                         </div>
                         <br/>
+                        <br/>
                         <p>Disturbance: <span data-bind="text: disturbance"></span>%</p>
                         <input type="range" name="points" min="-100" max="100" step="1" value="0" data-bind="value: disturbance, event: {change: disturbanceEvent}">
-                        <br/>
-                        <br/>
-                        <div>
-                            <label>Time Shift: <span data-bind="text: timeShift"></span></label>
-                            <input type="text" placeholder="0" class="input-small" data-bind="value: datasetStartTime">
-                        </div>
                     </div>
                 </div>
             </div>
@@ -106,8 +101,6 @@
     var predictPollRate = 2000;
 
     var eventRateUrl = "/data/random";
-
-    var datasetStartTime = 300 + 1377986401;
 
     var eventGraph = new Rickshaw.Graph({
         element: document.querySelector("#event_rate_chart"),
@@ -203,7 +196,7 @@
     }, predictPollRate);
 
     function pollPrediction(chart) {
-        d3.json("/data/predicted-load?delta=" + chartModel.timeShift(), function (error, json) {
+        d3.json("/data/predicted-load", function (error, json) {
             if (error) {
                 console.log(error);
             } else {
@@ -215,20 +208,10 @@
                 chart.render();
             }
         });
-//        d3.json("/data/current-load?delta=" + chartModel.timeShift(), function (error, json) {
-//            if (error) {
-//                console.log(error);
-//            } else {
-//                var data = {current: json.value};
-//                chart.series.addData(data, json.timestamp);
-//                chart.render();
-//            }
-//        })
     }
 
     function ChartViewModel() {
         this.eventRate = ko.observable(0);
-        this.datasetStartTime = ko.observable(datasetStartTime);
         this.liveRandom = ko.observable("");
         this.alertMessage = ko.observable("");
         this.showAlertMessage = ko.observable(false);
@@ -241,10 +224,6 @@
             }
         });
         this.liveRandom("live");
-
-        this.timeShift = ko.computed(function () {
-            return Math.round(new Date().getTime() / 1000) - this.datasetStartTime();
-        }, this);
 
         this.disturbance = ko.observable(0);
         var idx = 0;

@@ -2,6 +2,8 @@ package com.pivotal.gfxd.demo;
 
 import com.pivotal.gemfirexd.callbacks.AsyncEventListener;
 import com.pivotal.gemfirexd.callbacks.Event;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -15,6 +17,9 @@ import java.util.List;
  * @author Jens Deppe
  */
 public class AggregationListener implements AsyncEventListener {
+
+  private static final Logger LOG = LoggerFactory.getLogger(
+      AggregationListener.class.getName());
 
   private static final String DRIVER = "com.pivotal.gemfirexd.jdbc.ClientDriver";
 
@@ -120,7 +125,8 @@ public class AggregationListener implements AsyncEventListener {
 
           if (queryRS.next()) {
             PreparedStatement update = updateStmt.get();
-            update.setFloat(1, queryRS.getFloat("total_load") + eventRS.getFloat("value"));
+            update.setFloat(1,
+                queryRS.getFloat("total_load") + eventRS.getFloat("value"));
             update.setInt(2, queryRS.getInt("event_count") + 1);
             update.setInt(3, queryRS.getInt("plug_id"));
             update.setInt(4, queryRS.getInt("weekday"));
