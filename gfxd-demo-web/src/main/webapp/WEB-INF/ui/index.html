@@ -98,7 +98,7 @@
 <!--<script src="js/gfxd-demo.js" type="text/javascript"/>-->
 <script>
     var eventPollRate = 2000;
-    var predictPollRate = 2000;
+    var predictPollRate = 1000;
 
     var eventRateUrl = "/data/random";
 
@@ -114,7 +114,7 @@
             }
         ], undefined, {
             timeInterval: eventPollRate,
-            maxDataPoints: 100,
+            maxDataPoints: 150,
             timeBase: new Date().getTime() / 1000
         })
     });
@@ -166,7 +166,7 @@
             }
         ], undefined, {
             timeInterval: predictPollRate,
-            maxDataPoints: 300,
+            maxDataPoints: 600,
             timeBase: new Date().getTime() / 1000
         })
     });

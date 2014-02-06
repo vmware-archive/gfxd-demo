@@ -33,6 +33,8 @@ public class DemoController {
   @Autowired
   PredictionService predictionSvc;
 
+  private float lastCurrentLoad = 0;
+
   @RequestMapping(value = "/events-loaded",
       produces = "application/json",
       method = RequestMethod.GET)
@@ -84,6 +86,17 @@ public class DemoController {
         TimeSlice.Interval.FIVE_MINUTE);
     LOG.debug("Current load query took " + (System.currentTimeMillis() - start) +
         "ms + " + currentLoad + " for time " + startSeconds);
+
+    /**
+     * This is a hack as sometimes our query will exceed what we have in memory.
+     * This can easily happen during the few seconds as we transition between
+     * time slices.
+     */
+    if (Float.isNaN(currentLoad)) {
+      currentLoad = lastCurrentLoad;
+    } else {
+      lastCurrentLoad = currentLoad;
+    }
 
     /**
      * Respond with the current timestamp even though the data is calculated
