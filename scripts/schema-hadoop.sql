@@ -1,11 +1,9 @@
--- uncomment to run on hadoop
---DROP HDFSSTORE IF EXISTS sensorStore;
---CREATE HDFSSTORE sensorStore
---NameNode 'hdfs://localhost:9000'
---HomeDir '/sensorStore'
---BatchSize 10
---BatchTimeInterval 2000;
---
+DROP HDFSSTORE IF EXISTS sensorStore;
+CREATE HDFSSTORE sensorStore
+  NameNode 'hdfs://localhost:9000'
+  HomeDir '/sensorStore'
+  BatchSize 10
+  BatchTimeInterval 2000;
 
 drop table if exists raw_sensor;
 create table raw_sensor
@@ -51,22 +49,3 @@ alter table load_averages
 
 drop index if exists load_averages_idx;
 create index load_averages_idx on load_averages (weekday, time_slice, plug_id);
-
--- ------  Start AEQ section ---------
--- Uncomment the following section to enable the AsyncEventQueue listener
--- if you are not using Hadoop.
---
--- drop asynceventlistener if exists AggListener;
--- create asynceventlistener AggListener
--- (
---    listenerclass 'com.pivotal.gfxd.demo.AggregationListener'
---    initparams ''
---    batchsize 1000
---    batchtimeinterval 1000
--- ) server groups (group1);
--- 
--- alter table raw_sensor set asynceventlistener (AggListener);
--- 
--- call sys.start_async_event_listener('AggListener');
---
--- ------  End AEQ section ---------

@@ -31,17 +31,7 @@ dependencies {
 def gfxdWorkDir = new File("server1")
 def gfxd = GFXD_HOME + "/bin/gfxd"
 def appJars = configurations.appJars.collect { it }
-
-ext {
-  flavor = project.hasProperty("flavor") ? project.properties["flavor"] : "hadoop"
-}
-
-task foo(type: Task) {
-  doFirst {
-    println flavor
-    println project.properties
-  }
-}
+def flavor = project.hasProperty("flavor") ? project.properties["flavor"] : "hadoop"
 
 task stopServer(type: Exec) {
   ignoreExitValue = true
