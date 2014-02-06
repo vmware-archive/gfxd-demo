@@ -32,6 +32,17 @@ def gfxdWorkDir = new File("server1")
 def gfxd = GFXD_HOME + "/bin/gfxd"
 def appJars = configurations.appJars.collect { it }
 
+ext {
+  flavor = project.hasProperty("flavor") ? project.properties["flavor"] : "hadoop"
+}
+
+task foo(type: Task) {
+  doFirst {
+    println flavor
+    println project.properties
+  }
+}
+
 task stopServer(type: Exec) {
   ignoreExitValue = true
   commandLine gfxd, "server", "stop", "-dir=" + gfxdWorkDir
@@ -53,7 +64,7 @@ task startServer(dependsOn: [stopServer, ":gfxd-demo-loader:jar", ":gfxd-demo-ae
 }
 
 task schema(type: Exec) {
-  commandLine gfxd, "run", "-file=${projectDir}/scripts/schema.sql"
+  commandLine gfxd, "run", "-file=${projectDir}/scripts/schema-${flavor}.sql"
 }
 schema.mustRunAfter startServer
 

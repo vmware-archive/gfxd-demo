@@ -130,7 +130,11 @@ The job will generate entries on `load_averages` table, which will be used for p
 
 ### AsyncEventQueue Listener
 
-If you do not have a Hadoop environment available, you may simulate the MapReduce functionality by commenting out the relevant section in the `data/schema.sql` script to activate the `AggregationListener`.
+If you do not have a Hadoop environment available, you may simulate the MapReduce functionality by adding the following property to the `gradle cycle` command:
+
+    -Pflavor=aeq
+
+This option will activate an AsyncEventListener which performs the load aggregation function.
 
 
 
