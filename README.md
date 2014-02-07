@@ -1,27 +1,28 @@
-GemfireXD Demo
-==============
+GemfireXD Sensor Demo
+=====================
 
 Background
 ----------
 
 This demo is based on the [DEBS 2014 Challenge]. It uses the data set presented there and strives to achieve the objectives of the challenge.
 
-The demo is intended to illustrate how time-series data may be ingested into GemFireXD, evicted to Hadoop/HDFS, prcessed there and then have the results be fed back into GemFireXD.
+The demo is intended to illustrate how time-series data may be ingested into GemFireXD, evicted to Hadoop/HDFS, porcessed there, and then have the results be fed back into GemFireXD.
 
-Structure
+Data Flow
 ---------
 
-The repo consists of 4 sub-projects:
+The following diagram illustrates the basic data flow:
 
-* `gfxd-demo-loader` - The loader which used to stream events into the system.
-* `gfxd-demo-mapreduce` - The MapReduce component which produces load prediction data.
-* `gfxd-demo-web` - The web UI component.
-* `gfxd-demo-aeq-listener` - An optional AsyncEventQueue component which serves the same purpose as the MapReduce part. Use this if you don't have Hadoop.
+----
+
+![](images/gfxd-demo-architecture.png)
+
+----
 
 Schema
 ------
 
-Only two tables are used by the demo. One is used to hold incoming sensor data (`raw_sensor`) and the other is used to hold load average data used for load prediction (`load_averages`). Both tables are partitioned by `house_id`.
+Only two tables are used by the demo. One is used to hold incoming sensor data (`raw_sensor`) and the other is used to hold load average data used for load prediction (`load_averages`). Both tables are partitioned by `house_id` and are colocated.
 
     -- raw_sensor table
 
@@ -50,19 +51,29 @@ Although sensor data is recorded per second, the smallest aggregation is 5 minut
 The schema also defines the HDFS store used by the `raw_sensor` table to stream data to Hadoop, which will later be used by the MapReduce job. Remember to set NameNode hostname and port accordingly. 
 
     CREATE HDFSSTORE sensorStore
-    NameNode 'hdfs://localhost:9000'
-    HomeDir '/sensorStore'
-    BatchSize 10
-    BatchTimeInterval 2000
+      NameNode 'hdfs://localhost:9000'
+      HomeDir '/sensorStore'
+      BatchSize 10
+      BatchTimeInterval 2000
 
 Data
 ----
 
-Unfortunately the original data provided for this challenge is very large and unwieldy. Included with the source for this demo is pre-computed load_averages data for only 10 houses (approximately 500 plugs) and a much smaller (2 million entries) subset of the original sensor data set. A larger set of data (100 million rows) can be found here...
+Unfortunately the original data provided for this challenge is very large and unwieldy. Included with the source for this demo is pre-computed load_averages data for only 10 houses (approximately 500 plugs) and a much smaller (2 million entries) subset of the original sensor data set. A larger set of data (100 million rows) can be found on the [DEBS 2014 Challenge] site.
 
 The provided data is compressed. Make sure to uncompress all files in the `data/` directory. 
 
     gunzip load_averages-10.csv.gz sorted2M.csv.gz
+
+Structure
+---------
+
+The repo consists of 4 sub-projects:
+
+* `gfxd-demo-loader` - The loader which used to stream events into the system.
+* `gfxd-demo-mapreduce` - The MapReduce component which produces load prediction data.
+* `gfxd-demo-web` - The web UI component.
+* `gfxd-demo-aeq-listener` - An optional AsyncEventQueue component which serves the same purpose as the MapReduce part. Use this if you don't have Hadoop.
 
 Building
 --------
@@ -110,7 +121,11 @@ In order to see additional debug logging, also add the following to the previous
 
 Initially, 5 minutes worth of sensor data will be consumed as quickly as possible and then the data will be ingested by the second. This is done to seed the operational data so that the prediction model will have data to work with. The UI can be checked at `http://localhost:9090/ui/index.html`.
 
+----
+
 ![](images/gfxd-demo-ui.png)
+
+----
 
 ### Mapreduce 
 
