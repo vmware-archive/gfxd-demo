@@ -48,7 +48,7 @@ Only two tables are used by the demo. One is used to hold incoming sensor data (
 
 Although sensor data is recorded per second, the smallest aggregation is 5 minutes, thus each row in `load_averages` represents the average load for a given 5-minute slice, per weekday, per unique plug. Slices are numbered 0-287.
 
-The schema also defines the HDFS store used by the `raw_sensor` table to stream data to Hadoop, which will later be used by the MapReduce job. Remember to set NameNode hostname and port accordingly. 
+The schema also defines the HDFS store used by the `raw_sensor` table to stream data to Hadoop, which will later be used by the MapReduce job. 
 
     CREATE HDFSSTORE sensorStore
       NameNode 'hdfs://localhost:9000'
@@ -61,9 +61,12 @@ Data
 
 Unfortunately the original data provided for this challenge is very large and unwieldy. Included with the source for this demo is pre-computed load_averages data for only 10 houses (approximately 500 plugs) and a much smaller (2 million entries) subset of the original sensor data set. A larger set of data (100 million rows) can be found on the [DEBS 2014 Challenge] site.
 
-The provided data is compressed. Make sure to uncompress all files in the `data/` directory. 
+For this demo, we are only interested in the _load_ events (where `property == 1`), thus the provided data file only contains these events.
 
-    gunzip load_averages-10.csv.gz sorted2M.csv.gz
+The following changes are applied to the events as they are read in:
+
+* The timestamp is adjusted to match the current time
+* A system-wide unique `plug_id` is generated. This allows for faster updates to the `load_averages` data as well as reducing the size of indexes.
 
 Structure
 ---------
@@ -80,12 +83,12 @@ Building
 
 The demo is built using Gradle which is bundled.
 
-You will need a release of GemFireXD - specifically the sqlfire.jar and sqlfireclient.jar files.
+You will need a release of GemFireXD - specifically the gemfirexd.jar and gemfirexd-client.jar files.
 
 Create or edit `gradle.properties` in the source root directory defining the GFXD_HOME property which should point to your GemFireXD product directory. For example
 
     # gradle.properties file
-    GFXD_HOME = /opt/gemfirexd-0.5-beta
+    GFXD_HOME = /opt/gemfirexd-1.0
 
 Then simply build with:
 
@@ -95,6 +98,12 @@ Running
 -------
 
 Running the demo involves 3 main phases, namely _setup_, _ingest_ and _mapreduce_.
+
+Before starting, make sure that the provided data is uncompressed.
+
+    gunzip data/*gz
+
+Ensure that the namenode URL is set correctly in `scripts/schema-hadoop.sql`.
 
 ### Setup
 
@@ -119,7 +128,7 @@ In order to see additional debug logging, also add the following to the previous
 
     -Dorg.slf4j.simpleLogger.defaultLogLevel=DEBUG
 
-Initially, 5 minutes worth of sensor data will be consumed as quickly as possible and then the data will be ingested by the second. This is done to seed the operational data so that the prediction model will have data to work with. The UI can be checked at `http://localhost:9090/ui/index.html`.
+Initially, 5 minutes worth of sensor data will be consumed as quickly as possible and then the data will be ingested by the second. This is done to seed the operational data so that the prediction model will have data to work with. The UI can be accessed at `http://localhost:9090/ui/index.html`.
 
 ----
 
