@@ -105,6 +105,10 @@ Before starting, make sure that the provided data is uncompressed.
 
 Ensure that the namenode URL is set correctly in `scripts/schema-hadoop.sql`.
 
+### Hadoop
+
+The demo is intended to be run using the Pivotal HD distribution. An easy way to do this is by using the [PHD VM]. 
+
 ### Setup
 
 The setup phase consists of starting up a GemFireXD cluster and populating the load_averages table. This step is achieved with:
@@ -163,4 +167,5 @@ This option will activate an AsyncEventListener which performs the load aggregat
 
 
 [DEBS 2014 Challenge]:http://www.cse.iitb.ac.in/debs2014/?page_id=42
+[PHD VM]:http://gopivotal.com/products/pivotal-hd#4
 
