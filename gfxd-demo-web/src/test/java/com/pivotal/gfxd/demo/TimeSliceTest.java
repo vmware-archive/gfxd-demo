@@ -5,6 +5,7 @@ import org.junit.Test;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 import static org.junit.Assert.assertEquals;
 
@@ -13,11 +14,12 @@ import static org.junit.Assert.assertEquals;
  */
 public class TimeSliceTest {
 
+  private static final String DEFAULT_TZ = "PST";
   private Calendar cal;
 
   @Before
   public void setup() {
-    cal = GregorianCalendar.getInstance();
+    cal = GregorianCalendar.getInstance(TimeZone.getTimeZone(DEFAULT_TZ));
     // This is Tuesday, 21/01/2014 11:06:42.978
     cal.setTimeInMillis(1390331202978L);
   }
@@ -36,7 +38,9 @@ public class TimeSliceTest {
 
   @Test
   public void basic_5mins_2() throws Exception {
-    TimeSlice slice = new TimeSlice(1390331202L, TimeSlice.Interval.FIVE_MINUTE);
+    TimeSlice slice = new TimeSlice(1390331202L,
+        TimeSlice.Interval.FIVE_MINUTE,
+        Calendar.getInstance(TimeZone.getTimeZone(DEFAULT_TZ)));
     assertEquals(11, slice.getStamp().get(Calendar.HOUR_OF_DAY));
     assertEquals(5, slice.getStamp().get(Calendar.MINUTE));
     assertEquals(0, slice.getStamp().get(Calendar.SECOND));
@@ -60,7 +64,9 @@ public class TimeSliceTest {
 
   @Test
   public void basic_30mins_2() throws Exception {
-    TimeSlice slice = new TimeSlice(1390331202L, TimeSlice.Interval.THIRTY_MINUTE);
+    TimeSlice slice = new TimeSlice(1390331202L,
+        TimeSlice.Interval.THIRTY_MINUTE,
+        Calendar.getInstance(TimeZone.getTimeZone(DEFAULT_TZ)));
     assertEquals(11, slice.getStamp().get(Calendar.HOUR_OF_DAY));
     assertEquals(0, slice.getStamp().get(Calendar.MINUTE));
     assertEquals(0, slice.getStamp().get(Calendar.SECOND));

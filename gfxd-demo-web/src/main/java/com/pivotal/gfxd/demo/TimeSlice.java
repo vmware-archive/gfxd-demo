@@ -2,6 +2,7 @@ package com.pivotal.gfxd.demo;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 /**
  * Enum which represents X-minute slices of time in 24 hours.
@@ -56,13 +57,25 @@ public class TimeSlice {
   private Interval interval;
 
   /**
-   * Constructor
+   * Constructor. Create a TimeSlice using the given timestamp and a default
+   * calendar (including default timezone).
    *
    * @param timestamp timestamp in seconds
    * @param interval  the type of interval
    */
   public TimeSlice(long timestamp, Interval interval) {
-    clampedStamp = GregorianCalendar.getInstance();
+    this(timestamp, interval, GregorianCalendar.getInstance());
+  }
+
+  /**
+   * Constructor which also takes a Calendar argument, allowing the timestamp
+   * to be adjusted for different timezones.
+   * @param timestamp
+   * @param interval
+   * @param cal
+   */
+  public TimeSlice(long timestamp, Interval interval, Calendar cal) {
+    clampedStamp = cal;
     clampedStamp.setTimeInMillis(timestamp * 1000);
     processStamp(clampedStamp, interval);
   }
