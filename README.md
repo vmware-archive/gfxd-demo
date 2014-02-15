@@ -119,9 +119,6 @@ The `gfxd-demo-aeq-listener-1.0.jar` file needs to be available on the GemFireXD
 
 Restart the GemFireXD servers.
 
-    -server-groups=group1 \
-    -classpath=/home/gpadmin/gfxd-demo/gfxd-demo-aeq-listener/build/libs/gfxd-demo-aeq-listener-1.0.jar:/home/gpadmin/gfxd-demo/gfxd-demo-loader/build/libs/gfxd-demo-loader-1.0.jar
-
 The setup phase consists of creating the schema and populating the load_averages table. This step is achieved with:
 
     ./gradlew loadAverages
