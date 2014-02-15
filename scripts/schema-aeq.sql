@@ -1,4 +1,6 @@
+drop table if exists load_averages;
 drop table if exists raw_sensor;
+
 create table raw_sensor
   (
     id bigint,
@@ -18,7 +20,6 @@ create table raw_sensor
 drop index if exists raw_sensor_idx;
 create index raw_sensor_idx on raw_sensor (weekday, time_slice, plug_id);
 
-drop table if exists load_averages;
 create table load_averages
   (
     house_id integer not null,
@@ -52,3 +53,11 @@ create asynceventlistener AggListener
 alter table raw_sensor set asynceventlistener (AggListener);
 
 call sys.start_async_event_listener('AggListener');
+
+drop function if exists expired;
+create function expired (timestamp bigint, age integer)
+  returns integer
+  language java
+  parameter style java
+  no sql
+  external name 'com.pivotal.gfxd.demo.ExpirationPredicate.expired';

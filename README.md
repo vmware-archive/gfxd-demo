@@ -94,8 +94,8 @@ Then simply build with:
 
     ./gradlew build
 
-Running
--------
+Running on Hadoop
+-----------------
 
 Running the demo involves 3 main phases, namely _setup_, _ingest_ and _mapreduce_.
 
@@ -103,17 +103,28 @@ Before starting, make sure that the provided data is uncompressed.
 
     gunzip data/*gz
 
-Ensure that the namenode URL is set correctly in `scripts/schema-hadoop.sql`.
-
 ### Hadoop
 
 The demo is intended to be run using the Pivotal HD distribution. An easy way to do this is by using the [PHD VM]. 
 
-### Setup
+Ensure that the namenode URL is set correctly in `scripts/schema-hadoop.sql`.
 
-The setup phase consists of starting up a GemFireXD cluster and populating the load_averages table. This step is achieved with:
+### Setup (for Hadoop)
 
-    ./gradlew cycle
+The `gfxd-demo-aeq-listener-1.0.jar` file needs to be available on the GemFireXD classpath. When using the PHD VM, edit the `~gpadmin/Desktop/start_gfxd.sh` script and adjust it as follows:
+
+    # Look for the function 'startServers' and modify the sqlf/gfxd server start, adding the -classpath option
+    sqlf server start -dir=$BASEDIR/server${i} -locators=localhost[10101] -client-port=$CLIENTPORT \
+        -classpath=/home/gpadmin/gfxd-demo/gfxd-demo-aeq-listener/build/libs/gfxd-demo-aeq-listener-1.0.jar
+
+Restart the GemFireXD servers.
+
+    -server-groups=group1 \
+    -classpath=/home/gpadmin/gfxd-demo/gfxd-demo-aeq-listener/build/libs/gfxd-demo-aeq-listener-1.0.jar:/home/gpadmin/gfxd-demo/gfxd-demo-loader/build/libs/gfxd-demo-loader-1.0.jar
+
+The setup phase consists of creating the schema and populating the load_averages table. This step is achieved with:
+
+    ./gradlew loadAverages
 
 This task performs the following actions:
 * Stop the current GemFireXD server
@@ -150,20 +161,43 @@ Ensure that you have HADOOP_HOME and other hadoop environment variables set.
 
 Call the MapReduce job:
 
-    yarn jar gfxd-demo-mapreduce-1.0.jar -Dmapreduce.framework.name=local \
-        -Dmapreduce.cluster.local.dir=/tmp/mr-local \
-        -Dsqlfire.url="jdbc:sqlfire://localhost:1527"
+    yarn jar $PWD/gfxd-demo-mapreduce/build/libs/gfxd-demo-mapreduce-1.0.jar
+
+If necessary, the GemFireXD JDBC URL can be specified with:
+
+    -Dgemfirexd.url="jdbc:gemfirexd://localhost:1527"
 
 The job will generate entries on `load_averages` table, which will be used for prediction analysis.
 
-### AsyncEventQueue Listener
+If desired, the job can also be run with Gradle:
 
-If you do not have a Hadoop environment available, you may simulate the MapReduce functionality by adding the following property to the `gradle cycle` command:
+    ./gradlew run -Pargs=$PWD/gfxd-demo-mapreduce/build/libs/gfxd-demo-mapreduce-1.0.jar
 
-    -Pflavor=aeq
+Running without Hadoop
+----------------------
+
+### Setup with AsyncEventQueue Listener
+
+If you do not have a Hadoop environment available, you may simulate the MapReduce functionality by using an `AsyncEventListener` component which performs the same functionality. To use this, GemFireXD needs to have the `gfxd-demo-aeq-listener-1.0.jar` file available on its classpath and needs to be started with a `server-group` of `group1`. When using the PHD VM, edit the `~gpadmin/Desktop/start_gfxd.sh` script and adjust it as follows:
+
+    # Look for the function 'startServers' and modify the sqlf/gfxd server start, adding the -classpath and -server-groups options
+    sqlf server start -dir=$BASEDIR/server${i} -locators=localhost[10101] -client-port=$CLIENTPORT \
+        -server-groups=group1 \
+        -classpath=/home/gpadmin/gfxd-demo/gfxd-demo-aeq-listener/build/libs/gfxd-demo-aeq-listener-1.0.jar
+
+Restart the GemFireXD servers.
+
+The Gradle build script is able to start a single server to run the demo:
+
+    ./gradlew -Pflavor=aeq cycle
+
+If using the PHD VM, you may load the schema with:
+
+    ./gradlew -Pflavor=aeq loadAverages
 
 This option will activate an AsyncEventListener which performs the load aggregation function.
 
+At this point, the ingestion can be run as described above.
 
 
 [DEBS 2014 Challenge]:http://www.cse.iitb.ac.in/debs2014/?page_id=42

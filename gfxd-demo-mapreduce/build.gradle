@@ -4,7 +4,8 @@ apply plugin: 'application'
 
 sourceCompatibility = 1.7
 version = '1.0'
-mainClassName = 'com.pivotal.gfxd.demo.mapreduce.LoadAverage'
+mainClassName = 'org.apache.hadoop.util.RunJar'
+jobClassName = 'com.pivotal.gfxd.demo.mapreduce.LoadAverage'
 
 jar {
   baseName = "gfxd-demo-mapreduce"
@@ -12,18 +13,18 @@ jar {
   manifest {
     attributes 'Implementation-Title': 'gfxd-demo-mapreduce',
         'Implementation-Version': version,
-        'Main-Class': mainClassName
+        'Main-Class': jobClassName
   }
 
   doFirst {
     into( 'lib' ) {
-        from configurations.compile
+      from configurations.runtime
     }
   }
 }
 
 configurations {
-  loaderJar
+  runtime.exclude group: "org.slf4j", module: "slf4j-log4j12"
 }
 
 repositories {
@@ -33,28 +34,42 @@ repositories {
 }
 
 run {
+  // This is because of weirdness when running from Gradle. The classpath is
+  // set to include the build classes, but messes things up for MapReduce.
+  doFirst {
+    def classesDir = new File("build/classes")
+    classesDir.deleteDir()
+  }
   if(project.hasProperty('args')){
     args project.args.split('\\s+')
   }
+
+  // This is only relevant when running on the PHD VM
+  classpath += files("/etc/gphd/hadoop/conf")
 }
 
 applicationDefaultJvmArgs = [
-	"-DconfigFile=" + System.getProperty("configFile")
+//    "-Dmapreduce.framework.name=local",
+//    "-Dmapreduce.cluster.local.dir=/tmp/mr-local",
+//    "-Dgemfirexd.url=jdbc:gemfirexd://localhost:1527"
 ]
 
 dependencies {
   compile files(GFXD_HOME + '/lib/gemfirexd.jar')
   compile files(GFXD_HOME + '/lib/gemfirexd-client.jar')
-  compile 'org.springframework:spring-jdbc:4.0.0.RELEASE'
-  compile 'org.springframework:spring-context:4.0.0.RELEASE'
-  compile ('org.springframework.data:spring-data-hadoop:2.0.0.M4-hadoop22')
-  compile ('org.springframework.data:spring-data-hadoop-core:2.0.0.M4-hadoop22')
-//  compile ('org.apache.hadoop:hadoop-core:2.2.0')
-  compile 'org.slf4j:slf4j-api:1.7.5'
+//  compile 'org.springframework:spring-jdbc:4.0.0.RELEASE'
+//  compile 'org.springframework:spring-context:4.0.0.RELEASE'
+//  compile ('org.springframework.data:spring-data-hadoop:2.0.0.M4-hadoop22')
+//  compile ('org.springframework.data:spring-data-hadoop-core:2.0.0.M4-hadoop22')
+  compile ('org.apache.hadoop:hadoop-common:2.0.5-alpha')
+  compile ('org.apache.hadoop:hadoop-hdfs:2.0.5-alpha')
+  compile ('org.apache.hadoop:hadoop-mapreduce-client-core:2.0.5-alpha')
+  compile ('org.apache.hadoop:hadoop-mapreduce-client-jobclient:2.0.5-alpha')
   compile 'org.slf4j:slf4j-simple:1.7.5'
   compile group: 'commons-configuration', name: 'commons-configuration', version: '1.10'
   compile group: 'com.zaxxer', name: 'HikariCP', version: '1.2.1'
-  loaderJar files(jar.archivePath)
+
+  runtime project(path: ":gfxd-demo-aeq-listener", configuration: "aeqListenerJar")
 }
 
 task wrapper(type: Wrapper) {
