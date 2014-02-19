@@ -6,6 +6,8 @@ version = '1.0'
 
 repositories {
   mavenCentral()
+  maven { url "http://repo.spring.io/milestone" }
+  maven { url "http://repo.spring.io/libs-snapshot" }
 }
 
 dependencies {
