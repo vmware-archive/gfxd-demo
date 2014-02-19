@@ -24,6 +24,7 @@ configurations {
 }
 
 dependencies {
+  appJars project(path: ":gfxd-demo-loader", configuration: "loaderJar")
   appJars project(path: ":gfxd-demo-aeq-listener", configuration: "aeqListenerJar")
 }
 
@@ -37,7 +38,7 @@ task stopServer(type: Exec) {
   commandLine gfxd, "server", "stop", "-dir=" + gfxdWorkDir
 }
 
-task startServer(dependsOn: [stopServer, ":gfxd-demo-aeq-listener:jar"], type: Exec) {
+task startServer(dependsOn: [stopServer, ":gfxd-demo-loader:jar", ":gfxd-demo-aeq-listener:jar"], type: Exec) {
   doFirst {
     gfxdWorkDir.deleteDir()
     gfxdWorkDir.mkdir()
@@ -69,7 +70,7 @@ task setupLoadAveragesSql(type: Copy) {
     expand(load_averages_csv: data.path)
 }
 
-task loadAverages(type: Exec, dependsOn: [setupLoadAveragesSql]) {
+task loadAverages(type: Exec, dependsOn: [schema, setupLoadAveragesSql]) {
   commandLine gfxd, "run", "-file=/tmp/demo/import_load_averages.sql"
 }
 loadAverages.mustRunAfter schema, setupLoadAveragesSql
