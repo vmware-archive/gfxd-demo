@@ -24,7 +24,7 @@ jar {
 }
 
 configurations {
-  runtime.exclude group: "org.slf4j", module: "slf4j-log4j12"
+  runtime.exclude group: "org.slf4j"
 }
 
 repositories {
@@ -48,28 +48,16 @@ run {
   classpath += files("/etc/gphd/hadoop/conf")
 }
 
-applicationDefaultJvmArgs = [
-//    "-Dmapreduce.framework.name=local",
-//    "-Dmapreduce.cluster.local.dir=/tmp/mr-local",
-//    "-Dgemfirexd.url=jdbc:gemfirexd://localhost:1527"
-]
-
 dependencies {
   compile files(GFXD_HOME + '/lib/gemfirexd.jar')
   compile files(GFXD_HOME + '/lib/gemfirexd-client.jar')
-//  compile 'org.springframework:spring-jdbc:4.0.0.RELEASE'
-//  compile 'org.springframework:spring-context:4.0.0.RELEASE'
-//  compile ('org.springframework.data:spring-data-hadoop:2.0.0.M4-hadoop22')
-//  compile ('org.springframework.data:spring-data-hadoop-core:2.0.0.M4-hadoop22')
-  compile ('org.apache.hadoop:hadoop-common:2.0.5-alpha')
-  compile ('org.apache.hadoop:hadoop-hdfs:2.0.5-alpha')
-  compile ('org.apache.hadoop:hadoop-mapreduce-client-core:2.0.5-alpha')
-  compile ('org.apache.hadoop:hadoop-mapreduce-client-jobclient:2.0.5-alpha')
+  compile 'org.springframework:spring-context:4.0.0.RELEASE'
+  compile ('org.springframework.data:spring-data-hadoop:2.0.0.M5')
+  compile ('org.springframework.data:spring-data-hadoop-core:2.0.0.M5')
   compile 'org.slf4j:slf4j-simple:1.7.5'
-  compile group: 'commons-configuration', name: 'commons-configuration', version: '1.10'
-  compile group: 'com.zaxxer', name: 'HikariCP', version: '1.2.1'
-
   runtime project(path: ":gfxd-demo-aeq-listener", configuration: "aeqListenerJar")
+  runtime files(GFXD_HOME + '/lib/gemfirexd.jar')
+  runtime files(GFXD_HOME + '/lib/gemfirexd-client.jar')
 }
 
 task wrapper(type: Wrapper) {
