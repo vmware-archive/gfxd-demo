@@ -1,24 +1,29 @@
 package com.pivotal.gfxd.demo.mapreduce;
 
 import com.pivotal.gfxd.demo.mapreduce.LoadAverage;
+import org.apache.hadoop.util.Tool;
 import org.springframework.stereotype.Component;
 
 /**
- * Created by markito on 2/18/14.
+ * @author William Markito
  */
 @Component
 public class LoadAverageRunner {
 
-  public static void run() {
-    LoadAverage la = new LoadAverage();
-
-    String [] args = new String[5];
+  public int run(final String namenode) {
+    Tool loadAvgTool = new LoadAverage();
 
     try {
-      System.out.println("Return code" +  la.run(args));
+
+      int rc = loadAvgTool.run(new String[] {namenode});
+      System.out.println("Return code" +  rc);
+
+      return rc;
     } catch (Exception e) {
       e.printStackTrace();
     }
 
+    return -1;
   }
+
 }
