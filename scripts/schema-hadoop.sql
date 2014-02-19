@@ -16,7 +16,8 @@ CREATE HDFSSTORE sensorStore
   NameNode 'hdfs://localhost:8020'
   HomeDir '/sensorStore'
   BatchSize 10
-  BatchTimeInterval 2000;
+  BatchTimeInterval 2000
+  WriteOnlyFileRolloverInterval 60;
 
 create table raw_sensor
   (
