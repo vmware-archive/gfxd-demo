@@ -15,6 +15,8 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.springframework.stereotype.Component;
+
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -29,6 +31,7 @@ public class LoadAverage extends Configured implements Tool {
     public static class LoadAverageMapper extends Mapper<Object, Row, Text, LoadKey> {
 
         public void map(Object key, Row row, Context context) throws IOException, InterruptedException {
+
             try {
 
                 ResultSet rs = row.getRowAsResultSet();
@@ -93,10 +96,19 @@ public class LoadAverage extends Configured implements Tool {
         }
     }
 
+  /**!
+   * This method is assuming fs.default.name as args[0]
+   * @param args
+   * @return
+   * @throws Exception
+   */
     @Override
     public int run(String[] args) throws Exception {
+
+
+        System.out.println("Starting MapReduce Job");
         GfxdDataSerializable.initTypes();
-        Configuration conf = getConf();
+        Configuration conf = new Configuration();
 
         Path outputPath = new Path("/output");
         //Path intermediateOutputPath = new Path(args[0] + "_int");
@@ -105,16 +117,20 @@ public class LoadAverage extends Configured implements Tool {
         String outTableName = "LOAD_AVERAGES";
         String gfxdURL = conf.get("gemfirexd.url", "jdbc:gemfirexd://localhost:1527");
 
+        //conf.set("mapred.job.tracker", "192.168.1.8:8032");
+        conf.set("fs.default.name", args[0]);
+
         outputPath.getFileSystem(conf).delete(outputPath, true);
 
         conf.set(RowInputFormat.HOME_DIR, hdfsHomeDir);
         conf.set(RowInputFormat.INPUT_TABLE, tableName);
-        conf.setBoolean(RowInputFormat.CHECKPOINT_MODE, true);
+        conf.setBoolean(RowInputFormat.CHECKPOINT_MODE, false);
 
         conf.set(RowOutputFormat.OUTPUT_URL, gfxdURL);
         conf.set(RowOutputFormat.OUTPUT_TABLE, outTableName);
 
-        // print config to troubleshoot possible issues
+
+      // print config to troubleshoot possible issues
         Configuration.dumpConfiguration(conf, new PrintWriter(System.out));
 
         Job job = Job.getInstance(conf, "LoadAverage");
@@ -136,18 +152,15 @@ public class LoadAverage extends Configured implements Tool {
         job.setOutputKeyClass(Key.class);
         job.setOutputValueClass(LoadAverageModel.class);
 
-        //TextOutputFormat.setOutputPath(job, outputPath);
-        //job.setOutputFormatClass(TextOutputFormat.class);
-
         return job.waitForCompletion(true) ? 0 : 1;
-
     }
 
     public static void main(String[] args) throws Exception {
-        int rc = ToolRunner.run(new LoadAverage(), args);
+      // only for testing
+      int rc = ToolRunner.run(new LoadAverage(), new String[]{"hdfs://localhost:9000"});
 
-        System.out.println("Job completed. Return code:" + rc);
-        System.exit(rc);
+      System.out.println("Job completed. Return code:" + rc);
+      System.exit(rc);
     }
 
 }
