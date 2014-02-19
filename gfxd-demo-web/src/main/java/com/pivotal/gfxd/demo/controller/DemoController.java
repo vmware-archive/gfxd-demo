@@ -3,6 +3,7 @@ package com.pivotal.gfxd.demo.controller;
 import com.pivotal.gfxd.demo.TimeSlice;
 import com.pivotal.gfxd.demo.entity.TimestampValue;
 import com.pivotal.gfxd.demo.loader.ILoader;
+import com.pivotal.gfxd.demo.mapreduce.LoadAverageRunner;
 import com.pivotal.gfxd.demo.services.PredictionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,9 @@ public class DemoController {
 
   @Autowired
   ILoader loader;
+
+  @Autowired
+  LoadAverageRunner loadAverageRunner;
 
   @Autowired
   PredictionService predictionSvc;
@@ -119,4 +123,13 @@ public class DemoController {
     loader.setDisturbance(disturbance / 100F);
     return new ResponseEntity("", HttpStatus.OK);
   }
+
+  @RequestMapping(value= "/startMR", method= RequestMethod.GET)
+  @ResponseBody
+  public ResponseEntity startMRJob() {
+
+      //TODO parametrize
+      int result = loadAverageRunner.run("hdfs://localhost:8020");
+      return new ResponseEntity(result, HttpStatus.OK);
+    }
 }
