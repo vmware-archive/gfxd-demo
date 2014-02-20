@@ -55,9 +55,8 @@ dependencies {
   compile 'org.apache.hadoop:hadoop-common:2.0.5-alpha'
   compile 'org.apache.hadoop:hadoop-client:2.0.5-alpha'
   compile 'org.slf4j:slf4j-simple:1.7.5'
+
   runtime project(path: ":gfxd-demo-aeq-listener", configuration: "aeqListenerJar")
-  runtime files(GFXD_HOME + '/lib/gemfirexd.jar')
-  runtime files(GFXD_HOME + '/lib/gemfirexd-client.jar')
 }
 
 task wrapper(type: Wrapper) {

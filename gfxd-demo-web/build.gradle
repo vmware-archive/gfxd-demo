@@ -20,6 +20,9 @@ dependencies {
   compile 'javax.servlet:servlet-api:2.5'
   compile 'com.fasterxml.jackson.core:jackson-core:2.2.2'
   compile 'com.fasterxml.jackson.core:jackson-databind:2.2.2'
+
+  // Required for PHD VM.
+  runtime files("/etc/gphd/hadoop/conf")
 }
 
 jettyRun {
