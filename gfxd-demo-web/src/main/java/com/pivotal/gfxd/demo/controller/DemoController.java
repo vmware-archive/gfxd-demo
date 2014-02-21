@@ -5,6 +5,7 @@ import com.pivotal.gfxd.demo.entity.TimestampValue;
 import com.pivotal.gfxd.demo.loader.ILoader;
 import com.pivotal.gfxd.demo.mapreduce.LoadAverageRunner;
 import com.pivotal.gfxd.demo.services.PredictionService;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,9 @@ public class DemoController {
 
   @Autowired
   ILoader loader;
+
+  @Autowired
+  PropertiesConfiguration propConfiguration;
 
   @Autowired
   LoadAverageRunner loadAverageRunner;
@@ -124,12 +128,19 @@ public class DemoController {
     return new ResponseEntity("", HttpStatus.OK);
   }
 
-  @RequestMapping(value= "/startMR", method= RequestMethod.GET)
+  @RequestMapping(value= "/run-mapreduce",
+                  produces = "application/json",
+                  method= RequestMethod.GET)
   @ResponseBody
-  public ResponseEntity startMRJob() {
+  public ResponseEntity runMapReduceJob() {
+      try {
+        Thread.currentThread().sleep(2000);
+      } catch (Exception ex) {
+        ex.printStackTrace();
+      }
 
-      //TODO parametrize
-      int result = loadAverageRunner.run("hdfs://localhost:8020");
+      int result = loadAverageRunner.run(propConfiguration.getString("hdfs.namenode"));
+
       return new ResponseEntity(result, HttpStatus.OK);
     }
 }
