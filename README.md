@@ -168,7 +168,7 @@ The job will generate entries on `load_averages` table, which will be used for p
 
 If desired, the job can also be run with Gradle:
 
-    ./gradlew run -Pargs=$PWD/gfxd-demo-mapreduce/build/libs/gfxd-demo-mapreduce-1.0.jar
+    ./gradlew gfxd-demo-mapreduce:run -Pargs=$PWD/gfxd-demo-mapreduce/build/libs/gfxd-demo-mapreduce-1.0.jar
 
 Running without Hadoop
 ----------------------
