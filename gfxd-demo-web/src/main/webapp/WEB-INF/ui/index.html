@@ -81,7 +81,8 @@
                     </div>
                     <div class="span3 well">
                         <div>
-                            <button class="btn-small btn-info" data-bind="click: runMapReduce">Run MapReduce</button>
+                            <button class="btn-small btn-info" data-bind="click: runMapReduce"><span data-bind="text: mrButtonText"/></button>
+
                         </div>
                         <br/>
                         <br/>
@@ -99,7 +100,6 @@
 <script>
     var eventPollRate = 2000;
     var predictPollRate = 1000;
-
     var eventRateUrl = "/data/random";
 
     var eventGraph = new Rickshaw.Graph({
@@ -210,11 +210,14 @@
         });
     }
 
+    var mrButtonText = ko.observable("Run MapReduce");
+
     function ChartViewModel() {
         this.eventRate = ko.observable(0);
         this.liveRandom = ko.observable("");
         this.alertMessage = ko.observable("");
         this.showAlertMessage = ko.observable(false);
+         // Initially false
 
         this.liveRandom.subscribe(function (arg) {
             if (arg == "live") {
@@ -239,14 +242,17 @@
         }
 
         this.runMapReduce = function () {
-            console.log("--->>> Running MapReduce");
-//            d3.json("/data/run-mapreduce", function (error, json) {
-//                if (error) {
-//                    console.log(error);
-//                } else {
-//                    console.log(json);
-//                }
-//            });
+            mrButtonText("Running...");
+
+            d3.json("/data/run-mapreduce", function (error, json) {
+                if (error) {
+                    console.log(error);
+                } else {
+                    console.log(json);
+                }
+                mrButtonText("Run MapReduce");
+            });
+
         }
     }
 
