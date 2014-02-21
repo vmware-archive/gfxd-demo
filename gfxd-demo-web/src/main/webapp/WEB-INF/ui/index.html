@@ -104,7 +104,7 @@
 
     var eventGraph = new Rickshaw.Graph({
         element: document.querySelector("#event_rate_chart"),
-        width: "400",
+        width: "500",
         height: "100",
         renderer: "line",
         series: new Rickshaw.Series.FixedDuration([
@@ -210,14 +210,13 @@
         });
     }
 
-    var mrButtonText = ko.observable("Run MapReduce");
-
     function ChartViewModel() {
+        var self = this;
         this.eventRate = ko.observable(0);
         this.liveRandom = ko.observable("");
         this.alertMessage = ko.observable("");
         this.showAlertMessage = ko.observable(false);
-         // Initially false
+        this.mrButtonText = ko.observable("Run MapReduce");
 
         this.liveRandom.subscribe(function (arg) {
             if (arg == "live") {
@@ -242,7 +241,7 @@
         }
 
         this.runMapReduce = function () {
-            mrButtonText("Running...");
+            self.mrButtonText("Running...");
 
             d3.json("/data/run-mapreduce", function (error, json) {
                 if (error) {
@@ -250,7 +249,7 @@
                 } else {
                     console.log(json);
                 }
-                mrButtonText("Run MapReduce");
+                self.mrButtonText("Run MapReduce");
             });
 
         }
