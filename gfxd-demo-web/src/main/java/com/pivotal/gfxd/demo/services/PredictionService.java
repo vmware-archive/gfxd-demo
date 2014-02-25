@@ -57,9 +57,15 @@ public class PredictionService extends JdbcDaoSupport {
       for (int i = 1; i < 4; i++) {
         // Weekdays start at 1 so subtract 1 in order to be able to do modulo
         // arithmetic. Then add 1 at the end again.
+        int pastDay = (sliceNext.getWeekday() - 1 - i) % 7;
+        // Also, java modulo arithmetic returns negative if the dividend is negative
+        if (pastDay < 0) {
+          pastDay += 7;
+        }
+        pastDay += 1;
         lastDays[i - 1] =
-            getHistoricalAverageLoad(((sliceNext.getWeekday() - 1 - i) % 7) + 1,
-                sliceNext.getIntervalStart(), sliceNext.getIntervalEnd());
+            getHistoricalAverageLoad(pastDay, sliceNext.getIntervalStart(),
+                sliceNext.getIntervalEnd());
       }
       median = median(lastDays);
 
