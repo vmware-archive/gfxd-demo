@@ -13,9 +13,7 @@ repositories {
 dependencies {
   testCompile group: 'junit', name: 'junit', version: '4.11'
   compile project(path: ":gfxd-demo-loader")
-  compile(project(path: ":gfxd-demo-mapreduce")) {
-    transitive = true
-  }
+  compile project(path: ":gfxd-demo-mapreduce")
   compile 'org.springframework:spring-webmvc:4.0.0.RELEASE'
   compile 'javax.servlet:servlet-api:2.5'
   compile 'com.fasterxml.jackson.core:jackson-core:2.2.2'
