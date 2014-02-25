@@ -21,17 +21,17 @@ import javax.annotation.PostConstruct;
 @Component("loadRunner")
 public class LoadRunner {
 
-	private static Logger logger = LoggerFactory
-			.getLogger(LoadRunner.class.getCanonicalName());
+  private static Logger logger = LoggerFactory
+      .getLogger(LoadRunner.class.getCanonicalName());
 
-	@Autowired
-	ILoader loader;
+  @Autowired
+  ILoader loader;
 
-	@Autowired
-	Executor executor;
-	
-	@Autowired
-	PropertiesConfiguration propConfiguration;
+  @Autowired
+  Executor executor;
+  
+  @Autowired
+  PropertiesConfiguration propConfiguration;
 
   private int pauseTime = 0;
 
@@ -46,7 +46,7 @@ public class LoadRunner {
 
   private int maxHouseId = Integer.MAX_VALUE;
 
-	public LoadRunner() {
+  public LoadRunner() {
   }
 
   @PostConstruct
@@ -57,21 +57,21 @@ public class LoadRunner {
   }
 
   public void asyncInsertBatch(final List<String[]> lines, final long timestamp) {
-		
-		executor.execute( new Runnable() {
-			@Override
-			public void run() {
-				loader.insertBatch(lines, timestamp);
+    
+    executor.execute( new Runnable() {
+      @Override
+      public void run() {
+        loader.insertBatch(lines, timestamp);
         if (startTime + deltaAdjust + boostTime < timestamp) {
           pause();
         }
-			}
-		});
-		
-	}
+      }
+    });
+    
+  }
 
-	@SuppressWarnings("static-access")
-	private void pause() {
+  @SuppressWarnings("static-access")
+  private void pause() {
     try {
       Thread.currentThread().sleep(pauseTime);
     } catch (InterruptedException e) {
@@ -80,13 +80,13 @@ public class LoadRunner {
     }
   }
 
-	public void run(final String CSV_FILE) {
+  public void run(final String CSV_FILE) {
 
-		List<String[]> lines = new LinkedList<>();
-		String timestamp = null;
+    List<String[]> lines = new LinkedList<>();
+    String timestamp = null;
 
-		try (BufferedReader br = Files.newBufferedReader(Paths.get(CSV_FILE),
-				StandardCharsets.UTF_8)) {
+    try (BufferedReader br = Files.newBufferedReader(Paths.get(CSV_FILE),
+        StandardCharsets.UTF_8)) {
 
       // Lines are in this form:
       // id, timestamp, value, property, plug_id, household_id, house_id
@@ -105,55 +105,55 @@ public class LoadRunner {
           continue;
         }
 
-				// first iteration
-				if (timestamp == null) {
-					timestamp = split[1];
-					lines.add(split);
+        // first iteration
+        if (timestamp == null) {
+          timestamp = split[1];
+          lines.add(split);
           startTime = Long.parseLong(timestamp);
           // The stream of events need to appear as though they started
           // 'boostTime' seconds ago.
           deltaAdjust = (System.currentTimeMillis() / 1000) - startTime - boostTime;
 
-				} else {
-					// batch same timestamp objects
-					if (timestamp.equals(split[1])) {
-						lines.add(split);
+        } else {
+          // batch same timestamp objects
+          if (timestamp.equals(split[1])) {
+            lines.add(split);
 
-					} else {
+          } else {
 
-						// send batched records and create a new batch
-						this.asyncInsertBatch(lines, Long.parseLong(timestamp) + deltaAdjust);
-						lines = new LinkedList<>();
-						lines.add(split);
-						timestamp = split[1];
-					}
-				}
-			}
-			// insert last pending batch
-			this.asyncInsertBatch(lines, Long.parseLong(timestamp) + deltaAdjust);
+            // send batched records and create a new batch
+            this.asyncInsertBatch(lines, Long.parseLong(timestamp) + deltaAdjust);
+            lines = new LinkedList<>();
+            lines.add(split);
+            timestamp = split[1];
+          }
+        }
+      }
+      // insert last pending batch
+      this.asyncInsertBatch(lines, Long.parseLong(timestamp) + deltaAdjust);
 
-		} catch (IOException ioex) {
-			logger.error("An error occurred during batch insertion or the file was not accessible. Message: "
-					+ ioex.getMessage());
-		}
+    } catch (IOException ioex) {
+      logger.error("An error occurred during batch insertion or the file was not accessible. Message: "
+          + ioex.getMessage());
+    }
 
-	}
+  }
 
-	public static void main(String[] args) {
+  public static void main(String[] args) {
 
-		final String CSV_FILE = args[0];
+    final String CSV_FILE = args[0];
 
     long startTime = System.currentTimeMillis();
-		try (ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"classpath:context.xml")) {
+    try (ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+        "classpath:context.xml")) {
 
-			LoadRunner runner = (LoadRunner) context.getBean("loadRunner");
+      LoadRunner runner = (LoadRunner) context.getBean("loadRunner");
 
-			runner.run(CSV_FILE);
+      runner.run(CSV_FILE);
 
-		}
+    }
     long endTime = System.currentTimeMillis();
     logger.info("Total execution time: " + (endTime - startTime) + "ms");
-	}
+  }
 
 }

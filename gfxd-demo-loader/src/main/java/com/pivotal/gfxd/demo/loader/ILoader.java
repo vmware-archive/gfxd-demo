@@ -12,7 +12,7 @@ public interface ILoader {
    * @param lines
    * @param timestamp the timestamp (seconds) associated with this batch
    */
-	public void insertBatch(final List<String[]> lines, long timestamp);
+  public void insertBatch(final List<String[]> lines, long timestamp);
 
   /**
    * Return the total number of rows inserted so far.
