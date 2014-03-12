@@ -1,6 +1,5 @@
 package com.pivotal.gfxd.demo.mapreduce;
 
-import com.pivotal.gfxd.demo.mapreduce.LoadAverage;
 import org.apache.hadoop.util.Tool;
 import org.springframework.stereotype.Component;
 

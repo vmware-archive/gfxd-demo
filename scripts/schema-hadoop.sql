@@ -1,7 +1,9 @@
 -- DROPs in order
-DROP table if exists load_averages;
-DROP table if exists raw_sensor;
-DROP HDFSSTORE IF EXISTS sensorStore;
+drop table if exists load_averages_shadow;
+drop asynceventlistener if exists AggListener;
+drop table if exists load_averages;
+drop table if exists raw_sensor;
+drop hdfsstore if exists sensorStore;
 
 drop function if exists expired;
 create function expired (timestamp bigint, age integer)
@@ -12,7 +14,7 @@ create function expired (timestamp bigint, age integer)
   external name 'com.pivotal.gfxd.demo.ExpirationPredicate.expired';
 
 -- CREATES in order
-CREATE HDFSSTORE sensorStore
+create hdfsstore sensorStore
   NameNode 'hdfs://localhost:8020'
   HomeDir '/sensorStore'
   BatchSize 10
@@ -33,11 +35,11 @@ create table raw_sensor
   )
   partition by column (house_id)
   persistent
-  eviction by criteria (expired(timestamp, 600) = 1)
-  eviction frequency 600 seconds
+  eviction by criteria (expired(timestamp, 60) = 1)
+  eviction frequency 60 seconds
   hdfsstore (sensorStore) writeonly;
 
-DROP index if exists raw_sensor_idx;
+drop index if exists raw_sensor_idx;
 create index raw_sensor_idx on raw_sensor (weekday, time_slice, plug_id);
 
 create table load_averages
@@ -54,8 +56,43 @@ create table load_averages
   partition by column (house_id)
   colocate with (raw_sensor);
 
-alter table load_averages
-    add constraint LOAD_AVERAGES_PK PRIMARY KEY (house_id, plug_id, weekday, time_slice);
+-- alter table load_averages
+--    add constraint load_averages_pk primary key (house_id, plug_id, weekday, time_slice);
 
-DROP index if exists load_averages_idx;
+drop index if exists load_averages_idx;
 create index load_averages_idx on load_averages (weekday, time_slice, plug_id);
+
+-- This is a shadow table, used by the MapReduce job to insert it's results into.
+-- An AEQ picks up the events and inserts them into the actual load_averages table.
+create table load_averages_shadow
+  (
+    house_id integer not null,
+    household_id integer,
+    plug_id integer not null,
+    weekday smallint not null,
+    time_slice smallint not null,
+    total_load float(23),
+    event_count integer
+  )
+  partition by column (house_id)
+  colocate with (raw_sensor)
+  eviction by lrucount 1000
+  evictaction destroy;
+
+alter table load_averages_shadow
+    add constraint load_averages_shadow_pk primary key (weekday, time_slice, plug_id);
+
+-- drop index if exists load_averages_shadow_idx;
+-- create index load_averages_shadow_idx on load_averages_shadow (weekday, time_slice, plug_id);
+
+create asynceventlistener AggListener
+(
+   listenerclass 'com.pivotal.gfxd.demo.AggregationListener'
+   initparams 'total_load'
+   batchsize 1000
+   batchtimeinterval 1000
+) server groups (group1);
+
+alter table load_averages_shadow set asynceventlistener (AggListener);
+
+call sys.start_async_event_listener('AggListener');

@@ -45,7 +45,7 @@ drop asynceventlistener if exists AggListener;
 create asynceventlistener AggListener
 (
    listenerclass 'com.pivotal.gfxd.demo.AggregationListener'
-   initparams ''
+   initparams 'value'
    batchsize 1000
    batchtimeinterval 1000
 ) server groups (group1);
@@ -54,10 +54,3 @@ alter table raw_sensor set asynceventlistener (AggListener);
 
 call sys.start_async_event_listener('AggListener');
 
-drop function if exists expired;
-create function expired (timestamp bigint, age integer)
-  returns integer
-  language java
-  parameter style java
-  no sql
-  external name 'com.pivotal.gfxd.demo.ExpirationPredicate.expired';

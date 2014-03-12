@@ -37,7 +37,7 @@ run {
   // This is because of weirdness when running from Gradle. The classpath is
   // set to include the build classes, but messes things up for MapReduce.
   doFirst {
-    def classesDir = new File("build/classes")
+    def classesDir = new File("${projectDir}/build/classes")
     classesDir.deleteDir()
   }
   if(project.hasProperty('args')){
