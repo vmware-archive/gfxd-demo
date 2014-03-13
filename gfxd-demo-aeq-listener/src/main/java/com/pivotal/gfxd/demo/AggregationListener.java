@@ -10,6 +10,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,6 +30,11 @@ public class AggregationListener implements AsyncEventListener {
   private static final String UPDATE_SQL = "update load_averages set total_load=?, event_count=? where weekday=? and time_slice=? and plug_id=?";
 
   private String valueColumn;
+
+  /*
+   * See {@link #close()}
+   */
+  private static List<Connection> connections = new ArrayList<>();
 
   //load driver
   static {
@@ -56,6 +62,7 @@ public class AggregationListener implements AsyncEventListener {
     } catch (SQLException e) {
       throw new IllegalStateException("Unable to create connection", e);
     }
+    connections.add(conn);
     return conn;
   }
 
@@ -115,6 +122,15 @@ public class AggregationListener implements AsyncEventListener {
 
   @Override
   public void close() {
+    // Close all our previously created connections. This works around
+    // Trac #50091.
+    for (Connection c : connections) {
+      try {
+        c.close();
+      } catch (SQLException ex) {
+        // Ignored - we're shutting down.
+      }
+    }
   }
 
   @Override

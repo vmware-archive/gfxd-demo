@@ -1,3 +1,10 @@
+-- This ensures that any previous connections to load_averages
+-- are closed so that load_averages can be dropped - See Trac #50091
+-- We cannot simply drop the listener here either as it is configured on
+-- raw_sensor and because load_averages is co-located with raw_sensor,
+-- load_averages needs to be dropped first. Bit of a chicken-and-egg.
+call sys.stop_async_event_listener('AggListener');
+
 drop table if exists load_averages;
 drop table if exists raw_sensor;
 
