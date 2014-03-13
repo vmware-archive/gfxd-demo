@@ -35,8 +35,8 @@ create table raw_sensor
   )
   partition by column (house_id)
   persistent
-  eviction by criteria (expired(timestamp, 60) = 1)
-  eviction frequency 60 seconds
+  eviction by criteria (expired(timestamp, 600) = 1)
+  eviction frequency 600 seconds
   hdfsstore (sensorStore) writeonly;
 
 drop index if exists raw_sensor_idx;
