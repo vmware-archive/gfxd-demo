@@ -4,9 +4,9 @@ GemfireXD Sensor Demo
 Background
 ----------
 
-This demo is based on the [DEBS 2014 Challenge]. It uses the data set presented there and strives to achieve the objectives of the challenge.
+This demo is based on the [DEBS 2014 Challenge]. It uses the data set presented there and strives to achieve some of the objectives of the challenge.
 
-The demo is intended to illustrate how time-series data may be ingested into GemFireXD, evicted to Hadoop/HDFS, porcessed there, and then have the results be fed back into GemFireXD.
+The demo is intended to illustrate how time-series data may be ingested into GemFireXD, evicted to Hadoop/HDFS, processed there, and then have the results be fed back into GemFireXD.
 
 Data Flow
 ---------
@@ -17,12 +17,18 @@ The following diagram illustrates the basic data flow:
 
 ![](images/gfxd-demo-architecture.png)
 
+Data is ingested from an external source into a table which is backed by a HDFS write-only store. As data is written, it is automatically also written out to HDFS.
+
+A MapReduce job performs computation on the HDFS data in order to calculate load averages. The results are fed back into GemFireXD using a table which has an Async Event listener associated with it. The listener is then responsible for updating the load averages which are eventually used to compute prediction values.
+
+Although the MapReduce job could directly update the load averages, the Async Event listener component is simply reused so as not to duplicate functionality. (The Async Event listener can be used to provide the same functionality as the MapReduce job in the event that Hadoop is not available).
+
 ----
 
 Schema
 ------
 
-Only two tables are used by the demo. One is used to hold incoming sensor data (`raw_sensor`) and the other is used to hold load average data used for load prediction (`load_averages`). Both tables are partitioned by `house_id` and are colocated.
+Only two primary tables are used by the demo. One is used to hold incoming sensor data (`raw_sensor`) and the other is used to hold load average data used for load prediction (`load_averages`). Both tables are partitioned by `house_id` and are colocated.
 
     -- raw_sensor table
 
@@ -48,6 +54,13 @@ Only two tables are used by the demo. One is used to hold incoming sensor data (
 
 Although sensor data is recorded per second, the smallest aggregation is 5 minutes, thus each row in `load_averages` represents the average load for a given 5-minute slice, per weekday, per unique plug. Slices are numbered 0-287.
 
+As data is constantly streaming in, the `raw_sensor` table can only hold a certain amount of in-memory or operational data. In order that the data does not overflow memory, old data is evicted with an eviction clause:
+
+    eviction by criteria (expired(timestamp, 600) = 1)
+    eviction frequency 600 seconds
+
+Here a function called `expired` is being called every 10 minutes in order to evict data which is older than 10 minutes.
+
 The schema also defines the HDFS store used by the `raw_sensor` table to stream data to Hadoop, which will later be used by the MapReduce job. 
 
     CREATE HDFSSTORE sensorStore
@@ -55,6 +68,8 @@ The schema also defines the HDFS store used by the `raw_sensor` table to stream 
       HomeDir '/sensorStore'
       BatchSize 10
       BatchTimeInterval 2000
+
+The `load_averages_shadow` table is used as the destination for the MapReduce job output. The inserted rows are processed by the attached Async Event Listener and used to update the `load_averages` table.
 
 Data
 ----
@@ -76,7 +91,7 @@ The repo consists of 4 sub-projects:
 * `gfxd-demo-loader` - The loader which used to stream events into the system.
 * `gfxd-demo-mapreduce` - The MapReduce component which produces load prediction data.
 * `gfxd-demo-web` - The web UI component.
-* `gfxd-demo-aeq-listener` - An optional AsyncEventQueue component which serves the same purpose as the MapReduce part. Use this if you don't have Hadoop.
+* `gfxd-demo-aeq-listener` - An AsyncEventQueue component which can serve the same purpose as the MapReduce part. Use this if you don't have Hadoop.
 
 Building
 --------
@@ -88,7 +103,7 @@ You will need a release of GemFireXD - specifically the gemfirexd.jar and gemfir
 Create or edit `gradle.properties` in the source root directory defining the GFXD_HOME property which should point to your GemFireXD product directory. For example
 
     # gradle.properties file
-    GFXD_HOME = /opt/gemfirexd-1.0
+    GFXD_HOME = /usr/lib/gphd/gfxd
 
 Then simply build with:
 
@@ -107,27 +122,30 @@ Before starting, make sure that the provided data is uncompressed.
 
 The demo is intended to be run using the Pivotal HD distribution. An easy way to do this is by using the [PHD VM]. 
 
-Ensure that the namenode URL is set correctly in `scripts/schema-hadoop.sql`.
+Ensure that the namenode URL is set correctly in `scripts/schema-hadoop.sql`. For the PHD VM, this would be `hdfs://localhost:8020`
 
 ### Setup (for Hadoop)
 
-The `gfxd-demo-aeq-listener-1.0.jar` file needs to be available on the GemFireXD classpath. When using the PHD VM, edit the `~gpadmin/Desktop/start_gfxd.sh` script and adjust it as follows:
+The `gfxd-demo-aeq-listener-1.0.jar` file needs to be available on the GemFireXD classpath. When using the PHD VM, edit the `~/Desktop/start_gfxd.sh` script and adjust it as follows:
 
-    # Look for the function 'startServers' and modify the sqlf/gfxd server start, adding the -classpath option
-    sqlf server start -dir=$BASEDIR/server${i} -locators=localhost[10101] -client-port=$CLIENTPORT \
+    # Look for the function 'startServers' and modify the gfxd server start, adding the -classpath and -server-groups options
+    # Note that for some versions, this command may be sqlf and not gfxd. These commands are interchangeable.
+    gfxd server start -dir=$BASEDIR/server${i} -locators=localhost[10101] -client-port=$CLIENTPORT \
+        -server-groups=group1 \
         -classpath=/home/gpadmin/gfxd-demo/gfxd-demo-aeq-listener/build/libs/gfxd-demo-aeq-listener-1.0.jar
 
 Restart the GemFireXD servers.
+
+Also ensure that YARN is running. On the PHD VM, YARN can be explicitly started with:
+
+    icm_client start -l pivhd -s yarn
 
 The setup phase consists of creating the schema and populating the load_averages table. This step is achieved with:
 
     ./gradlew loadAverages
 
 This task performs the following actions:
-* Stop the current GemFireXD server
-* Clean up the server's directory - `server1/`
-* Start a GemFireXD server
-* Create the necessary tables
+* Create the necessary tables, HDFS store definitions and Async Event listeners
 * Import data into the `load_averages` table
 
 ### Ingest
@@ -150,13 +168,7 @@ Initially, 5 minutes worth of sensor data will be consumed as quickly as possibl
 
 ### Mapreduce 
 
-Once ingestion has been running for a while, the operational data will start to be evicted to HDFS. In order to run the provided MapReduce job, ensure that you have your CLASSPATH set correctly:
-
-    export CLASSPATH=$CLASSPATH:gfxd-demo-mapreduce/build/libs/gfxd-demo-mapreduce-1.0.jar
-
-Ensure that you have HADOOP_HOME and other hadoop environment variables set.
-
-Call the MapReduce job:
+Running MapReduce is not automatically scheduled, but can be run manually by the user. The UI provides a _Run MapReduce_ button which will perform the run. Output will appear on the console of the web server. Similarly, the job can also be initiated from the command line with:
 
     yarn jar $PWD/gfxd-demo-mapreduce/build/libs/gfxd-demo-mapreduce-1.0.jar
 
@@ -170,33 +182,29 @@ If desired, the job can also be run with Gradle:
 
     ./gradlew gfxd-demo-mapreduce:run -Pargs=$PWD/gfxd-demo-mapreduce/build/libs/gfxd-demo-mapreduce-1.0.jar
 
+
 Running without Hadoop
 ----------------------
 
-### Setup with AsyncEventQueue Listener
+If you do not have a PHD VM environment available, you can still run the demo and simulate the MapReduce functionality by using the Async Event listener component to perform the same functionality.
 
-If you do not have a Hadoop environment available, you may simulate the MapReduce functionality by using an `AsyncEventListener` component which performs the same functionality. To use this, GemFireXD needs to have the `gfxd-demo-aeq-listener-1.0.jar` file available on its classpath and needs to be started with a `server-group` of `group1`. When using the PHD VM, edit the `~gpadmin/Desktop/start_gfxd.sh` script and adjust it as follows:
+In this scenario, the architecture would look as follows:
 
-    # Look for the function 'startServers' and modify the sqlf/gfxd server start, adding the -classpath and -server-groups options
-    sqlf server start -dir=$BASEDIR/server${i} -locators=localhost[10101] -client-port=$CLIENTPORT \
-        -server-groups=group1 \
-        -classpath=/home/gpadmin/gfxd-demo/gfxd-demo-aeq-listener/build/libs/gfxd-demo-aeq-listener-1.0.jar
+![](images/gfxd-demo-architecture-no-hadoop.png)
 
-Restart the GemFireXD servers.
-
-The Gradle build script is able to start a single server to run the demo:
+If you are not using the PHD VM, you can start up a single GemFireXD server with:
 
     ./gradlew -Pflavor=aeq cycle
 
-If using the PHD VM, you may load the schema with:
+This will use a different DDL script (`scripts/schema-aeq.sql`) to set up the necessary tables.
+
+If you are using the PHD VM and already have GemFireXD servers running, you can load the schema with:
 
     ./gradlew -Pflavor=aeq loadAverages
-
-This option will activate an AsyncEventListener which performs the load aggregation function.
 
 At this point, the ingestion can be run as described above.
 
 
 [DEBS 2014 Challenge]:http://www.cse.iitb.ac.in/debs2014/?page_id=42
-[PHD VM]:http://gopivotal.com/products/pivotal-hd#4
+[PHD VM]:https://network.gopivotal.com/products/pivotal-hd
 
