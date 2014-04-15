@@ -52,8 +52,8 @@ dependencies {
   compile files(GFXD_HOME + '/lib/gemfirexd.jar')
   compile files(GFXD_HOME + '/lib/gemfirexd-client.jar')
   compile 'org.springframework:spring-context:4.0.0.RELEASE'
-  compile 'org.apache.hadoop:hadoop-common:2.0.5-alpha'
-  compile 'org.apache.hadoop:hadoop-client:2.0.5-alpha'
+  compile 'org.apache.hadoop:hadoop-common:2.2.0'
+  compile 'org.apache.hadoop:hadoop-client:2.2.0'
   compile 'org.slf4j:slf4j-simple:1.7.5'
 
   runtime project(path: ":gfxd-demo-aeq-listener", configuration: "aeqListenerJar")
