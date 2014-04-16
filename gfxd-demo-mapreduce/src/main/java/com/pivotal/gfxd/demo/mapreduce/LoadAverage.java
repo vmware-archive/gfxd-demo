@@ -108,8 +108,8 @@ public class LoadAverage extends Configured implements Tool {
   public int run(String[] args) throws Exception {
     System.out.println("Starting MapReduce Job");
     GfxdDataSerializable.initTypes();
-    //Configuration conf = new Configuration();
-    Configuration conf = getConf();
+    Configuration conf = new Configuration();
+    //Configuration conf = getConf();
 
     Path outputPath = new Path("/output");
     String hdfsHomeDir = "/sensorStore"; //args[1];
