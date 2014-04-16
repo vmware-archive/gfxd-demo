@@ -76,7 +76,7 @@ create table load_averages_shadow
   )
   partition by column (house_id)
   colocate with (raw_sensor)
-  eviction by lrucount 1000
+  eviction by lrucount 2
   evictaction destroy;
 
 alter table load_averages_shadow
