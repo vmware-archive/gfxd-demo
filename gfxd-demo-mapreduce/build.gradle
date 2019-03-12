@@ -29,8 +29,8 @@ configurations {
 
 repositories {
   mavenCentral()
-  maven { url "http://repo.spring.io/milestone" }
-  maven { url "http://repo.spring.io/libs-snapshot" }
+  maven { url "https://repo.spring.io/milestone" }
+  maven { url "https://repo.spring.io/libs-snapshot" }
 }
 
 run {
