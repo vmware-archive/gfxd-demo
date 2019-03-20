@@ -248,7 +248,7 @@ Rickshaw.namespace('Rickshaw.Compat.ClassList');
 
 Rickshaw.Compat.ClassList = function() {
 
-	/* adapted from http://purl.eligrey.com/github/classList.js/blob/master/classList.js */
+	/* adapted from https://purl.eligrey.com/github/classList.js/blob/master/classList.js */
 
 	if (typeof document !== "undefined" && !("classList" in document.createElement("a"))) {
 
