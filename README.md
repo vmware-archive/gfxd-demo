@@ -205,6 +205,6 @@ If you are using the PHD VM and already have GemFireXD servers running, you can 
 At this point, the ingestion can be run as described above.
 
 
-[DEBS 2014 Challenge]:http://www.cse.iitb.ac.in/debs2014/?page_id=42
+[DEBS 2014 Challenge]:https://www.cse.iitb.ac.in/debs2014/?page_id=42
 [PHD VM]:https://network.gopivotal.com/products/pivotal-hd
 
