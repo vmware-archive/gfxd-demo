@@ -12,8 +12,8 @@ sourceCompatibility = '1.7'
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
 repositories {
-    mavenCentral();
-    // You may define additional repositories, or even remove "mavenCentral()".
+    maven { url 'https://repo.maven.apache.org/maven2/' };
+    // You may define additional repositories, or even remove "maven { url 'https://repo.maven.apache.org/maven2/' }".
     // Read more about repositories here:
     //   https://www.gradle.org/docs/current/userguide/dependency_management.html#sec:repositories
 }
